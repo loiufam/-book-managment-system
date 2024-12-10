@@ -40,10 +40,6 @@
             <scope>compile</scope>
         </dependency>
 
-
-
-
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
@@ -56,6 +52,17 @@
             <version>2.6.3</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.vaadin.external.google</groupId>
+            <artifactId>android-json</artifactId>
+            <version>0.0.20131108.vaadin1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20230227</version> <!-- Use the latest version -->
+        </dependency>
+
 
     </dependencies>
 

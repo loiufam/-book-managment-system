@@ -11,9 +11,9 @@ import java.sql.*;
 public class dbConn {
 
     private final String dbDrive = "org.opengauss.Driver";
-    private final String dbUrl = "jdbc:opengauss://121.36.60.12:5432/remote_db";
-    private final String dbUserName = "remote_user";
-    private final String dbPassword = "huawei+123";
+    private final String dbUrl = "jdbc:opengauss://113.45.35.246:5432/jesper";
+    private final String dbUserName = "my_root";
+    private final String dbPassword = "123456@my_root";
     public JSONArray queryResultReturned= new JSONArray();
     public Connection dbConnection = null;
 
