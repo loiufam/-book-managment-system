@@ -112,6 +112,12 @@
         // let filePath = avatarFile ? avatarFile.name : ''; // 获取文件路径
 
         // 初始化 OBS 客户端
+        const client = new OSS({
+            region: 'oss-cn-guangzhou',
+            accessKeyId: 'LTAI5tRTt6mNJWSsKgLhBBg2',
+            accessKeySecret: '57euejpndMjxkv4Hq6YmI1fI6KcPdf',
+            bucket: 'lyhimage'
+        });
 
         async function uploadFileToOSS(file) {
             try {
