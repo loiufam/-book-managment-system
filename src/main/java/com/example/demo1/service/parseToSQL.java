@@ -1,17 +1,14 @@
 package com.example.demo1.service;
 
-import com.example.demo1.model.BookBorrowDTO;
-import com.example.demo1.model.books;
 import com.huawei.shade.com.alibaba.fastjson.JSON;
 import com.huawei.shade.com.alibaba.fastjson.JSONArray;
 import com.huawei.shade.com.alibaba.fastjson.JSONObject;
 
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.SQLException;
 
-import java.sql.*;
-import java.util.List;
-import java.util.ArrayList;
 
-//把controller层的操作解析为SQL，执行交给dbConn对象
 public class parseToSQL {
     public static String user_id = null;
     static dbConn conn;
@@ -23,6 +20,43 @@ public class parseToSQL {
         dbConnection = conn.dbConnection;
 
     }
+
+//    public static void main(String[] args) throws SQLException {
+//        String json_2 = "{\"id\":-1,\"user_id\":\"0\",\"pwd\":\"huawei+123\"}"; //管理员登录
+//        String json_1 = "{\"id\":-2,\"user_id\":\"123456\",\"pwd\":\"123456\"}";          //注册
+//        String json_22 = "{\"id\":-1,\"user_id\":\"123456\",\"pwd\":\"123456\"}"; //登录
+//        String json0 = "{\"id\":0,\"kind\":\"0\"}";
+//        String json1 = "{\"id\":1,\"userID\":\"11\",\"objectID\":\"1212\",\"number\":\"+10\"}"; //测试用户借还操作
+//        String json2 = "{\"id\":2,\"objectID\":\"1212\",\"number\":\"-1\"}";//测试管理员增减操作
+//        String json3 = "{\"id\":3,\"kind\":\"0\",\"objectID\":\"123456\"," +
+//                "\"IOD\":\"0\",\"introduction\":\"'123456','dadada',\n" +
+//                " 'fdhasjfhkj','323','45','$233','fdasfdsafdsa','cool'\"}";//测试插入操作
+//        String json4 = "{\"id\":3,\"kind\":\"0\",\"objectID\":\"123456\",\"IOD\":\"1\",\"introduction\":\"\"}";//测试删除操作
+//        String json5 = "{\"id\":4,\"kind\":\"0\",\"objectID\":\"123456\",\"introduction\":\"\"}";//测试删除操作
+//        String json6 = "{\"id\":5,\"kind\":\"0\"}";
+//        JSONObject jsonObj_2 = JSON.parseObject(json_2);
+//        JSONObject jsonObj_22 = JSON.parseObject(json_22);
+//        JSONObject jsonObj_1 = JSON.parseObject(json_1);
+//        JSONObject jsonObj0 = JSON.parseObject(json0);
+//        JSONObject jsonObj1 = JSON.parseObject(json1);
+//        JSONObject jsonObj2 = JSON.parseObject(json2);
+//        JSONObject jsonObj3 = JSON.parseObject(json3);
+//        JSONObject jsonObj4 = JSON.parseObject(json4);
+//        JSONObject jsonObj5 = JSON.parseObject(json5);
+//        JSONObject jsonObj6 = JSON.parseObject(json6);
+//        parseToSQL temp = new parseToSQL();
+//        temp.parse(jsonObj1);
+//        temp.parse(jsonObj6);
+////        temp.parse(jsonObj_22);
+////        temp.parse(jsonObj_1);
+////        temp.parse(jsonObj_22);
+////        temp.parse(jsonObj2);
+////        temp.parse(jsonObj3);
+////        temp.parse(jsonObj4);
+////        temp.parse(jsonObj_2);
+////        temp.closeConnection();
+//
+//    }
 
     public String parse(JSONObject jsonObj) throws SQLException {
         String result = null;
@@ -36,10 +70,10 @@ public class parseToSQL {
                 result = String.valueOf(parse_1(jsonObj, true));  //登录
                 break;
             case 0:
-                parse0(jsonObj);  //查询图书/论文操作
+                parse0(jsonObj);
                 break;
             case 1:
-                result = parse1(jsonObj); //用户查询和借还书
+                result = parse1(jsonObj);
                 break;
             case 2:
                 result = parse2(jsonObj);
@@ -62,54 +96,20 @@ public class parseToSQL {
         return (String) result;
     }
 
-    public List<BookBorrowDTO> queryRecordsByID(String userId) throws SQLException{
-        String SQLCmd = "SELECT " +
-                "    books.book_id, " +
-                "    books.book_name, " +
-                "    books.image_url AS imageUrl, " +
-                "    books.author, " +
-                "    books.publisher, " +
-                "    COUNT(records.record_id) AS borrowCount " +
-                "FROM " +
-                "    records " +
-                "JOIN " +
-                "    books ON records.bookid = books.book_id " +
-                "WHERE " +
-                "    records.userid = " + userId +
-                "GROUP BY " +
-                "    books.book_id, books.book_name, books.image_url, books.author, books.publisher;";
-        Statement statement = dbConnection.createStatement(); // Statement对象
-        ResultSet rs; // 结果集合
-        System.out.println(SQLCmd);
-        rs = statement.executeQuery(SQLCmd);
-        List<BookBorrowDTO> bookList = new ArrayList<>();
-
-        while (rs.next()) {
-            BookBorrowDTO book = new BookBorrowDTO();
-            book.setBookId(rs.getString("book_id"));
-            book.setBookName(rs.getString("book_name"));
-            book.setImageUrl(rs.getString("imageUrl"));
-            book.setAuthor(rs.getString("author"));
-            book.setPublisher(rs.getString("publisher"));
-            book.setBorrowCount(rs.getLong("borrowCount"));
-
-            bookList.add(book);
-        }
-        return bookList;
-    }
-
     public int closeConnection() {
         conn.closeConnection();
         return 0;
     }
-    //登陆注册功能，主要影响users表
+
     public int parse_1(JSONObject jsonObj, boolean if_login) throws SQLException {
         String id = jsonObj.getString("user_id");
         String pwd = jsonObj.getString("pwd");
         String SQLCmd = ";";
+        String stuID = jsonObj.getString("stuID");
+        String image_url = jsonObj.getString("image_url");
 
         int result = 2;
-        if (if_login) { //登陆
+        if (if_login) {
             SQLCmd = "SELECT * FROM users WHERE user_name = " + "'" + id + "'" + ";";
             System.out.println(SQLCmd);
             result = conn.LoginDB(SQLCmd, pwd);
@@ -125,10 +125,10 @@ public class parseToSQL {
                 System.out.println("登陆失败");
                 return 2;
             }
-        } else { //注册
-            String stuID = jsonObj.getString("stuID");
-            int identity = jsonObj.getIntValue("identity");
-            SQLCmd = "INSERT INTO users VALUES(" + "'" + id + "'" + "," + "'" + pwd + "'" +",'"+ identity + "','"+stuID+"');";
+        } else {
+
+//            SQLCmd = "INSERT INTO users VALUES(" + "'" + id + "'" + "," + "'" + pwd + "'" +",'"+1+ "','"+stuID+"');";
+            SQLCmd = "INSERT INTO users VALUES(" + "'" + id + "'" + "," + "'" + pwd + "'" +",'"+1+ "','"+stuID+ "','" + image_url +"');";
             System.out.println(SQLCmd);
             result = conn.insertToDB(SQLCmd);
             if (result == 0) {
@@ -145,14 +145,14 @@ public class parseToSQL {
 
 //    create table records(
 //
-//    user_id char(30),
+//            user_id char(30),
 //    object_id char(30),
 //    number char(30),
 //    date  DATE,
 //
 //    PRIMARY KEY(user_id, object_id)
 //)
-    //查询图书/论文操作
+
     public JSONArray parse0(JSONObject jsonObj) throws SQLException {
         int kind = jsonObj.getIntValue("kind");
         String dbname = "books";
@@ -173,8 +173,9 @@ public class parseToSQL {
     ● 文献类别(0:图书,1:论文) kind
     ● 处理方法( int 表示数量,正表加,负表减) number
     */
+
     public String parse1(JSONObject jsonObj) throws SQLException {
-        String userid =jsonObj.getString("user_id");
+        String userid =user_id;
         String objectID = jsonObj.getString("objectID");
         String number = jsonObj.getString("number");
         String book_name = jsonObj.getString("book_name");
@@ -219,6 +220,7 @@ public class parseToSQL {
             conn.deleteFromDB(SQLCmdToDelete);
             conn.insertToDB(SQLCmdToInsert);
             return updateExisting(objectID, dbName, Integer.parseInt(number));
+
         }
 
     }
@@ -270,7 +272,7 @@ public class parseToSQL {
         System.out.println(result);
         return 0;
     }
-    //查询records表
+
     public JSONArray parse5(JSONObject jsonObj) throws SQLException {
         int kind = jsonObj.getIntValue("kind"); //0 admin  1 user
         String dbname = "records";
