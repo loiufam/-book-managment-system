@@ -106,6 +106,7 @@ public class parseToSQL {
         String pwd = jsonObj.getString("pwd");
         String SQLCmd = ";";
         String stuID = jsonObj.getString("stuID");
+        String image_url = jsonObj.getString("image_url");
 
         int result = 2;
         if (if_login) {
@@ -126,7 +127,8 @@ public class parseToSQL {
             }
         } else {
 
-            SQLCmd = "INSERT INTO users VALUES(" + "'" + id + "'" + "," + "'" + pwd + "'" +",'"+1+ "','"+stuID+"');";
+//            SQLCmd = "INSERT INTO users VALUES(" + "'" + id + "'" + "," + "'" + pwd + "'" +",'"+1+ "','"+stuID+"');";
+            SQLCmd = "INSERT INTO users VALUES(" + "'" + id + "'" + "," + "'" + pwd + "'" +",'"+1+ "','"+stuID+ "','" + image_url +"');";
             System.out.println(SQLCmd);
             result = conn.insertToDB(SQLCmd);
             if (result == 0) {
