@@ -40,6 +40,7 @@
 
         <p></p>
         <button id="build" class="btn btn-default" style="margin-right:  20px ;width: 80px ;background-color: #168bef;height: 36px;color: #FFFFFF">查阅</button>
+        <button id="addNew" class="btn btn-default" style="margin-right: 20px; width: 80px; background-color: #28a745; height: 36px; color: #FFFFFF">新增</button>
         <!--<button id="delete" class="btn btn-default">Delete</button>-->
         <!--<button id="blank" class="btn btn-default">Add a blank line</button>-->
     </div>
@@ -104,10 +105,11 @@
     <input type="text" class="inputstyle" id="id" style="display: none;">
     <p>请选择借书还是还书：</p>
     <div class="form-group">
-        <label for="cbox1">借书：</label>
-        <input type="checkbox" name="edit_way" id="cbox1" value="0">
-        <label for="cbox1">还书：</label>
-        <input type="checkbox" name="edit_way" id="cbox2" value="1">
+        <label for="rbtBorrow">借书：</label>
+        <input type="radio" name="edit_way" id="rbtBorrow" value="0">
+        <label for="rbtReturn">还书：</label>
+        <input type="radio" name="edit_way" id="rbtReturn" value="1">
+
     </div>
     <p>请确认要借阅/归还的ID和书名是否正确：</p>
     <div class="form-group">
@@ -129,7 +131,6 @@
     <div class="modal-footer">
         <button type="button" class="btn default" data-dismiss="modal" id="close">Close</button>
         <button type="button" class="btn blue" id="updateBtn">Save</button>
-
     </div>
 </div>
 
@@ -151,7 +152,87 @@
     var introduction;
 
 
+    $(document).ready(function(){
+        // 绑定新增按钮点击事件
+        $('#addNew').click(function() {
+            // 显示新增表单
+            $(".page-content-wrapper").show();
 
+            // 清空表单
+            $('#book_id, #book_name, #collection_number, #existing_number, #numm').val('');
+
+            // 默认选择借书
+            $('#rbtBorrow').prop('checked', true);
+        });
+
+        $('#close').click(function() {
+            // 隐藏新增表单
+            $(".page-content-wrapper").hide();
+        });
+
+        $('#updateBtn').click(function () {
+            // 获取表单数据
+            var objectID = $("#book_id").val().trim();
+            var book_name = $("#book_name").val().trim();
+            var collection_number = parseInt($("#collection_number").val().trim(), 10);
+            var existing_number = parseInt($("#existing_number").val().trim(), 10);
+            var numm = parseInt($("#numm").val().trim(), 10);
+            var editWay = $('input[name="edit_way"]:checked').val();
+
+            // 简单验证输入
+            if (!objectID || !book_name || isNaN(collection_number) || isNaN(existing_number) || isNaN(numm)) {
+                alert('请填写所有必填项，并确保数量为有效数字');
+                return;
+            }
+
+            if (!editWay) {
+                alert("请选择借书或者还书！");
+                return;
+            }
+
+            // 根据借书还是还书调整numm
+            let adjustedNumm = editWay === "0" ? -numm : numm;
+
+            // 验证库存与总数
+            if (adjustedNumm < 0 && Math.abs(adjustedNumm) > existing_number) {
+                alert("借阅数量超过库存数量！");
+                return;
+            } else if (adjustedNumm > 0 && existing_number + adjustedNumm > collection_number) {
+                alert("还书错误：归还数量超过了图书总数！");
+                return;
+            }
+
+            // 构造要发送的数据对象
+            var data = {
+                id: "1",
+                userID: "后端判断", // 这个字段可能需要根据实际情况调整
+                objectID: objectID,
+                number: adjustedNumm,
+                book_name: book_name
+            };
+
+            // 发送AJAX请求以保存新书信息或更新库存
+            $.ajax({
+                type: "POST",
+                url: "userOp", // 替换为你的实际接口地址
+                data: JSON.stringify(data),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (response) {
+                    console.log("操作成功");
+                    // 刷新表格或其他更新UI的操作
+                    build(); // 假设这是刷新表格的方法
+                    // 隐藏新增表单
+                    $(".page-content-wrapper").hide();
+                    alert("操作成功！");
+                },
+                error: function (error) {
+                    console.error("操作失败", error);
+                    alert('操作失败，请稍后再试');
+                }
+            });
+        });
+    });
 
 
 
@@ -346,111 +427,6 @@
         publisher = data.publisher;
         introduction = data.introduction;
     }
-    $("#close").on("click", function() {
-        $(".page-content-wrapper").hide();
-    })
-
-
-    $("#updateBtn").on("click",function (){
-        var obj=document.getElementsByName('edit_way'); //选择所有name="'edit_way'"的对象，返回数组
-        //取到对象数组后，我们来循环检测它是不是被选中
-        var s='';
-        for(var i=0; i<obj.length; i++){
-            if(obj[i].checked) s+=obj[i].value+','; //如果选中，将value添加到变量s中
-        }
-        if(s.length==0)
-        {
-            alert("还没有选择借书或者还书！")
-        }
-        else if(s.length==4)
-        {
-            alert("不能同时选择两种方式！")
-        }
-        else {
-            let numm;
-
-            if (s[0]=="0") //0是借书
-            {
-                 numm=  "-"+$("#numm").val();
-                console.log("借书:"+numm);
-            }else if(s[0]=="1"){
-                numm =  "+"+$("#numm").val();
-                console.log("还书:"+numm);
-            };
-
-            let edit_id=s[0];
-
-            var objectID = $("#book_id").val();
-            var book_name = $("#book_name").val();
-            var collection_number= $("#collection_number").val();
-            var existing_number = $("#existing_number").val();
-
-            var edit_num;
-            var idd = '2';
-
-                console.log("开始判断");
-                console.log(parseInt(numm));
-                console.log(parseInt(existing_number));
-                console.log(parseInt(collection_number));
-            if (parseInt(numm) > parseInt(existing_number) && edit_id === "0")
-            {
-                // console.log("操作后书本"+(parseInt(existing_number)-parseInt(numm)));
-                alert("借阅数量超过库存数量！");
-            }else if(parseInt(numm)+parseInt(existing_number)>parseInt(collection_number) && edit_id==="1")
-            {
-                // console.log("操作后书本"+parseInt(numm)+parseInt(existing_number));
-                alert("还书错误");
-            } else {
-                if (edit_id==="0")
-                {
-                    edit_num = (parseInt(existing_number)-parseInt(numm)).toString();
-                    console.log(edit_num)
-                }
-                else if (edit_id==="1")
-                {
-                    edit_num = (parseInt(existing_number)+parseInt(numm)).toString();
-                    console.log(edit_num)
-                }
-
-
-                let data;
-                let obj={};
-                obj.id="1";
-                obj.userID="后端判断";
-                obj.objectID=objectID;
-                obj.number=numm;
-                obj.book_name=book_name;
-                let post_all=JSON.stringify(obj);
-                console.log(post_all);
-                // 下面填写ajax报文
-                    $.ajax({
-                    type: "post",
-                    url: "userOp" ,  //填写数据库url
-                    dataType: "json",
-                    contentType : "application/json",
-                    data:post_all,
-                    success: function (data_json) {
-
-                        console.log(data_json);
-                        build();
-                        // location = location;
-                    },
-                    error: function () {
-                        alert("借阅失败,请重新操作");
-                    }
-                })
-
-
-
-
-            }
-
-        }
-
-
-    })
-
-
 
 
 
