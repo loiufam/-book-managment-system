@@ -26,6 +26,17 @@
         #table th{
             background: #efefef;
         }
+        .form-group {
+            display: flex;
+            gap: 20px; /* 控制选项之间的间距 */
+        }
+        .radio-label {
+            display: flex;
+            align-items: center; /* 垂直居中对齐 */
+        }
+        .radio-label input[type="radio"] {
+            margin-right: 8px; /* 调整复选框和文本之间的间距 */
+        }
     </style>
 
 </head>
@@ -51,8 +62,7 @@
                         </div>
                         <div class="form-group mar_b">
                             <span class="iconfont icon-Profile icon_p"></span>
-                            <input type="text" class="form-control icon-pass" id="stuName"
-                                   placeholder="请输入您的姓名">
+                            <input type="text" class="form-control icon-pass" id="stuName" placeholder="请输入您的姓名">
 
                         </div>
                         <div class="form-group mar_b">
@@ -61,20 +71,18 @@
                                    placeholder="请输入您的密码">
 
                         </div>
-
-
-<!--                        <div class="form-check font-s">-->
-<!--                            <div class="custom-control custom-checkbox small">-->
-<!--                                <input type="checkbox" class="custom-control-input" id="customCheck">-->
-<!--                                <label class="custom-control-label" for="customCheck">记住密码</label>-->
-<!--                            </div>-->
-<!--                        </div>-->
-                        <!--							<div class="f_pass">-->
-                        <!--&lt;!&ndash;								<div class="f_pass_n">&ndash;&gt;-->
-                        <!--&lt;!&ndash;									<i class="fl"><img src="images/sq.png"></i>&ndash;&gt;-->
-                        <!--&lt;!&ndash;									<p>密码不正确,请重新输入!</p>&ndash;&gt;-->
-                        <!--&lt;!&ndash;								</div>&ndash;&gt;-->
-                        <!--							</div>-->
+<!--                        写一个单选框，标记普通用户或管理员用户注册-->
+                        <div class="form-group">
+                            <label>选择注册用户类型:</label>
+                            <div class="radio-label">
+                                <input type="radio" id="userTypeNormal" name="userType" value="normal" checked>
+                                <label for="userTypeNormal">普通用户</label>
+                            </div>
+                            <div class="radio-label">
+                                <input type="radio" id="userTypeAdmin" name="userType" value="admin">
+                                <label for="userTypeAdmin">管理员</label>
+                            </div>
+                        </div>
                         <button type="button" class="login" id="login1">注册</button>
                         <button type="button" class="login" id="register1">返回</button>
                     </form>
@@ -99,26 +107,25 @@
     function login3() {
 
         let obj = {};
-        obj.user_name = $("input[id='username1']").val();//用户名
-
-        // if($("input[id='password1']").val()!==$("input[id='password2']").val()){
-        //     window.alert("两次密码不一致请重新输入"); //显示警告框
-        // }
-
-        obj.user_password = $("input[id='password1']").val();//密码
-        obj.stuID= $("input[id='stuName']").val();//密码
+        obj.user_name = $("input[id='username1']").val();//学号
+        obj.user_password = $("input[id='password1']").val(); //密码
+        obj.stuID= $("input[id='stuName']").val(); //姓名
+        if ($("#userTypeNormal").is(":checked")) {
+            obj.identity = 1; // 普通用户
+        } else if ($("#userTypeAdmin").is(":checked")) {
+            obj.identity = 0; // 管理员
+        }
 
         let post_all=JSON.stringify(obj);
-        console.log(post_all);
-
-
-        console.log("用户名");
-        console.log(obj.user_name);
-        console.log("密码");
-        console.log(obj.user_password);
-
-        console.log("姓名");
-        console.log($("input[id='stuName']").val());
+        // console.log(post_all);
+        //
+        // console.log("用户名");
+        // console.log(obj.user_name);
+        // console.log("密码");
+        // console.log(obj.user_password);
+        //
+        // console.log("姓名");
+        // console.log($("input[id='stuName']").val());
 
         console.log(post_all);
 
@@ -130,30 +137,16 @@
             contentType : "application/json",
             success: function (data) { //传回来的json
 
-
-
                     console.log(data.msg); //传回的信号
-                    console.log("sucess");
-                    // alert(data.msg);
                     setTimeout(function(){
 
                     },3000);
-
                     if(data.msg==="1"){
                         alert($("input[id='stuName']").val()+"注册成功,3秒后返回登录页面");
                         window.location.href="login.html";
                     }else{
                         alert("用户已存在, 注册失败, 更换用户名进行注册");
                     }
-
-
-
-
-
-
-
-
-
 
                 // if(data.msg=="0"){
                 //     console.log("admin login")

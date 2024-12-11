@@ -65,7 +65,7 @@ public class dbConn {
 
     }
 
-
+    // 执行查询SQL
     public String QueryDB(String SQLCmd, int kind) throws SQLException {
         //kind 0 books 1 papers 2 records
         Statement statement = dbConnection.createStatement(); // Statement对象
@@ -74,7 +74,7 @@ public class dbConn {
         rs = statement.executeQuery(SQLCmd);
         Statement statement1 = dbConnection.createStatement();
         ResultSet rs1;
-        rs1 = statement1.executeQuery(SQLCmd);
+        rs1 = statement1.executeQuery(SQLCmd);//执行查询
         String result = "";
         System.out.println("查询结果为：");
         if (kind == 0) {
@@ -82,8 +82,8 @@ public class dbConn {
                 String s = rs.getString("book_id") + "-" + rs.getString("book_name") + "-"
                         + rs.getString("author") + "-" + rs.getString("collection_number") + "-"
                         + rs.getString("existing_number") + "-" + rs.getString("price") + "-"
-                        + rs.getString("publisher") + "-" + rs.getString("introduction")
-                        + rs.getString("shelf") + "-"+ rs.getString("type");
+                        + rs.getString("publisher") + "-" + rs.getString("introduction");
+//                        + rs.getString("shelf") + "-"+ rs.getString("type");
                 s = s.replace(" ", "");
                 s = s.replace("-", ",");
                 System.out.println(s);
@@ -124,8 +124,8 @@ public class dbConn {
                 temp.put("price",rs1.getString("price").trim());
                 temp.put("publisher",rs1.getString("publisher").trim());
                 temp.put("introduction",rs1.getString("introduction").trim());
-                temp.put("shelf",rs1.getString("shelf").trim());
-                temp.put("type",rs1.getString("type").trim());
+                //temp.put("shelf",rs1.getString("shelf").trim());
+                //temp.put("type",rs1.getString("type").trim());
                 queryResult.add(temp);
             }
         }
@@ -147,8 +147,8 @@ public class dbConn {
             temp.put("doi",rs1.getString("doi").trim());
             queryResult.add(temp);
         }
-    }
-        else
+        }
+        else  //查询records
         {
             while (rs1.next()) {
                 JSONObject temp = new JSONObject();
@@ -195,8 +195,8 @@ public class dbConn {
     public int LoginDB(String SQLCmd, String pwd) throws SQLException {
         Statement statement = dbConnection.createStatement(); // Statement对象
         ResultSet rs; // 结果集合
-        int result = 2;
-        rs = statement.executeQuery(SQLCmd);
+        //int result = 2;
+        rs = statement.executeQuery(SQLCmd); //查询users表返回的结果集
         while (rs.next()) {
             String id = rs.getString("user_name");
             id = id.trim();
@@ -206,10 +206,10 @@ public class dbConn {
             System.out.println("登录请求,输入的密码为 " + pwd);
             System.out.println("查询到的信息：id = " + id + " pwd =" + pwd_query + " if_admin= " + if_admin);
             if (pwd.equals(pwd_query)) {
-                if (if_admin.equals("0")) {
+                if (if_admin.equals("0")) {  //管理员登陆
                     return 0;
                 } else {
-                    return 1;
+                    return 1;   //普通用户登陆
                 }
             } else return 2;
         }

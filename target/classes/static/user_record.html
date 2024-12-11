@@ -16,14 +16,59 @@
         #table th{
             background: #efefef;
         }
+        .backg{
+            background: url("../static/images/bg.jpg") repeat ;
+            overflow: scroll;
+            height:100vh;
+            display: -webkit-flex;
+            -webkit-flex-direction: column;
+        }
+        .book-item {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding: 15px 0;
+        }
+        .book-image {
+            width: 100px;
+            height: 150px;
+            margin-right: 20px;
+        }
+        .book-details {
+            flex-grow: 1;
+        }
+        .book-title {
+            font-size: 1.2em;
+            margin: 0;
+        }
+        .borrow-count {
+            color: #7ED321;
+        }
+        .btn-default {
+            background-color: #7ED321;
+            color: white;
+            border: none;
+        }
+        .btn-default:hover {
+            background-color: #6bbd1c;
+        }
+        .loading {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .no-books-message {
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+        }
     </style>
-    <title>管理员用户界面</title>
+    <title>用户借阅记录界面</title>
 </head>
 
 <body>
 
 
-<div class="back">
+<div class="backg">
 
 <div class="container">
 
@@ -38,26 +83,29 @@
 
     </p>
 
-
-        <button id="build" class="btn btn-default" style="margin-right:  20px ;width: 80px ;background-color: #168bef;height: 36px;color: #FFFFFF">查询</button>
-
+<!--        <button id="build" class="btn btn-default" style="margin-right:  20px ;width: 80px ;background-color: #168bef;height: 36px;color: #FFFFFF">查询</button>-->
 
     </div>
-    <div class=table-responsive">
-        <table id="table" class="table text-nowrap" data-toggle="table" data-show-columns="true" data-search="true"
-               data-show-refresh="true" data-show-toggle="true" data-pagination="true" data-height="500">
-            <thead>
-            <tr>
-                <th data-field="user_id">用户ID</th>
-                <th data-field="object_id">书籍ID</th>
-                <th data-field="book_name">书名</th>
-                <th data-field="number">借阅数量</th>
-                <th data-field="date">借阅日期</th>
+<!--    <div class=table-responsive">-->
+<!--        <table id="table" class="table text-nowrap" data-toggle="table" data-show-columns="true" data-search="true"-->
+<!--               data-show-refresh="true" data-show-toggle="true" data-pagination="true" data-height="500">-->
+<!--            <thead>-->
+<!--            <tr>-->
+<!--                <th data-field="user_id">用户ID</th>-->
+<!--                <th data-field="object_id">书籍ID</th>-->
+<!--                <th data-field="book_name">书名</th>-->
+<!--                <th data-field="number">借阅数量</th>-->
+<!--                <th data-field="date">借阅日期</th>-->
+<!--            </tr>-->
+<!--            </thead>-->
+<!--        </table>-->
+<!--    </div>-->
+        <!--    替换上面表单形式呈现数据，开发类似书城界面，显示书本图片、书名、借阅数量、借阅日期-->
+    <h2 style="margin-top: 30px;">我的借阅</h2>
 
-            </tr>
-            </thead>
-        </table>
-    </div>
+    <div id="loading" class="loading">加载中...</div>
+    <div id="noBooksMessage" class="no-books-message">您还没有借阅任何书籍。</div>
+    <div id="bookList" class="book-list"></div>
 </div>
 
 </div>
@@ -74,8 +122,53 @@
 
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const bookListContainer = document.getElementById('bookList');
+        const loadingIndicator = document.getElementById('loading');
+        const noBooksMessage = document.getElementById('noBooksMessage');
 
+        // 显示加载指示器
+        loadingIndicator.style.display = 'block';
+        noBooksMessage.style.display = 'none';
 
+        // 假设有一个获取书籍信息的API端点，要在路径参数加上userId
+        let userId = sessionStorage.getItem('userId'); //获取当前登陆用户id
+        fetch('/user_books?userId=${encodeURIComponent(userId)}')
+            .then(response => response.json())
+            .then(data => { //返回书籍信息列表
+                if (data.length === 0) {
+                    // 如果没有书籍，显示提示信息
+                    noBooksMessage.style.display = 'block';
+                } else {
+                    // 动态渲染书籍信息
+                    data.forEach(book => {
+                        const bookItem = document.createElement('div');
+                        bookItem.className = 'book-item';
+
+                        bookItem.innerHTML = `
+                        <img src="${book.imageUrl}" alt="${book.bookName} Cover" class="book-image">
+                        <div class="book-details">
+                            <p class="book-title">书名：${book.bookName}</p>
+                            <p>作者：${book.author}</p>
+                            <p>出版社：${book.publisher}</p>
+                            <p class="borrow-count">借阅数量：${book.borrowCount} 次</p>
+                        </div>
+                    `;
+
+                        bookListContainer.appendChild(bookItem);
+                    });
+                }
+
+                // 隐藏加载指示器
+                loadingIndicator.style.display = 'none';
+            })
+            .catch(error => {
+                console.error('Error fetching books:', error);
+                loadingIndicator.style.display = 'none';
+                noBooksMessage.innerText = '加载书籍信息失败，请稍后再试。';
+                noBooksMessage.style.display = 'block';
+            });
+    });
     //data-url="data/data1.json"
     $(function () {
         $('#build').click(build);//.trigger('click');
@@ -85,7 +178,6 @@
             }
         });
     });
-
 
 
     //表格超出宽度鼠标悬停显示td内容
@@ -106,14 +198,6 @@
             }
         }
     }
-
-
-
-
-
-
-
-
 
     //***********************************************************************************************************************************
     // 选择请求的类型,并显示在列表上   {id: , kind: }, id表示动作, kind表示书还是论文

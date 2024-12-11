@@ -22,21 +22,17 @@ public class registerController {
     }
 
 
-
     @RequestMapping(path = "/register",method = RequestMethod.POST)
     @ResponseBody
     public JSONObject register(@RequestBody(required=false) JSONObject user) throws SQLException {
-        System.out.println("++++++++++++++++++++++"+user);
-//        System.out.println(user.getUser_name());
         JSONObject json = new JSONObject();
 
-
-        json.put("id","-2");
-        json.put("user_id",user.getString("user_name"));
-        json.put("pwd",user.getString("user_password"));
-        json.put("stuID",user.getString("stuID"));
-        System.out.println("0000000000000000         "+json);
-
+        json.put("id","-2"); //注册功能
+        json.put("user_id",user.getString("user_name")); //学号
+        json.put("pwd",user.getString("user_password")); //密码
+        json.put("stuID",user.getString("stuID"));  //姓名
+        json.put("identity",user.getIntValue("identity")); //注册身份
+        System.out.println("注册用户信息"+json);
 
         String ret = temp.parse(json);
         JSONObject result = new JSONObject();

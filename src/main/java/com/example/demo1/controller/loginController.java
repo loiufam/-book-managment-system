@@ -22,46 +22,26 @@ public class loginController {
         return "forward:login.html";
     }
 
-    //接收login_test页面的字符数组
-//    @RequestMapping(path = "/login",method = RequestMethod.POST,produces = "application/json;charset=utf-8")
-//    @ResponseBody
-//    public Object Receive(@RequestBody users user){  //Employee可以改为Object
-////
-////        System.out.println(user.getUser_name()+"\n"+user.getUser_password()+user.getIdentify()+user.getEmail());
-//
-//        System.out.println(user.getUser_name());
-//        if(user.getUser_name().equals("jeremy")) {
-//            return "{\"msg\":\"添加成功,恭喜你\"}";
-//        }else
-//        {
-//            return "{\"msg\":\"添加失败,加油,再试一试\"}";
-//        }
-//
-//    }
-    public  static   String USERID1;
+    public static String USERID1;
 
     @RequestMapping(path = "/login",method = RequestMethod.POST)
     @ResponseBody
     public JSONObject login(@RequestBody(required=false) users user) throws SQLException {
-        System.out.println(user);
-        System.out.println(user.getUser_name());
         JSONObject json = new JSONObject();
 
         USERID1=user.getUser_name();
-        System.out.println("当前登录用户id========================>"+user.getUser_name());
+        System.out.println("当前登录用户id为："+user.getUser_name());
 
-
-
-        json.put("id","-1");
-        json.put("user_id",user.getUser_name());
+        // 将登陆用户学号，密码封装成一个JSON对象
+        json.put("id","-1"); //登陆kind对应-1
+        json.put("user_id",user.getUser_name());  //根据学号查询users表
         json.put("pwd",user.getUser_password());
 
-        String ret = temp.parse(json);
+        String ret = temp.parse(json);   //“0”管理员登陆；“1”普通用户登录
         JSONObject result = new JSONObject();
         result.put("msg",ret);
         System.out.println(result);
         return result;
-
     }
 }
 

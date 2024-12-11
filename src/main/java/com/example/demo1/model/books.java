@@ -42,6 +42,13 @@ public class books {
         return introduction;
     }
 
+    public int getBorrowCount(){
+        // 转换字符串为整数进行计算
+        int total = Integer.parseInt(collection_number);
+        int existing = Integer.parseInt(existing_number);
+        return total - existing;
+    }
+
     public void setBook_id(String book_id) {
         this.book_id = book_id;
     }

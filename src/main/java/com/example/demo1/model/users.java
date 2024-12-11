@@ -1,7 +1,7 @@
 package com.example.demo1.model;
 
 public class users {
-    private String user_name;
+    private String user_name; //学号
     private String user_password;
     private String identify;  // 0表示管理员 ,1表示普通用户
     private String stuName;

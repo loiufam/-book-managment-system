@@ -1,13 +1,16 @@
 package com.example.demo1.controller;
 
 
+import com.example.demo1.model.BookBorrowDTO;
+import com.example.demo1.model.books;
 import com.example.demo1.service.parseToSQL;
+import com.huawei.shade.com.alibaba.fastjson.JSONArray;
 import com.huawei.shade.com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
+
 import java.sql.SQLException;
+import java.util.List;
 
 @Controller
 public class userController {
@@ -40,6 +43,45 @@ public class userController {
             return createErrorResponse("数据库操作失败：" + e.getMessage());
         }catch (Exception e) {
             // 其他未知异常
+            e.printStackTrace();
+            return createErrorResponse("服务器内部错误：" + e.getMessage());
+        }
+    }
+
+    @GetMapping("/user_books")
+    @ResponseBody
+    public JSONObject getUserBooks(@RequestParam(value = "userId", required = true) String userId){
+        try {
+            //根据userId查询records表
+            parseToSQL temp = new parseToSQL();
+
+            List<BookBorrowDTO> books = temp.queryRecordsByID(userId);
+            JSONObject response = new JSONObject();
+            if (books.isEmpty()) {
+                response.put("status", "success");
+                response.put("msg", "您还没有借阅任何书籍。");
+                response.put("data", new JSONArray()); // 返回空数组表示没有书籍
+            } else {
+                JSONArray bookArray = new JSONArray();
+                for (BookBorrowDTO book : books) {
+                    JSONObject bookJson = new JSONObject();
+                    bookJson.put("title", book.getBookName());
+                    bookJson.put("author", book.getAuthor());
+                    bookJson.put("publisher", book.getPublisher());
+                    bookJson.put("borrowCount", book.getBorrowCount());
+                    bookJson.put("imageUrl", book.getImageUrl());
+                    bookArray.add(bookJson);
+                }
+                response.put("status", "success");
+                response.put("msg", "获取书籍信息成功");
+                response.put("data", bookArray);
+            }
+
+            // 打印日志信息
+            System.out.println("获取用户书籍响应: " + response);
+
+            return response;
+        } catch (Exception e) {
             e.printStackTrace();
             return createErrorResponse("服务器内部错误：" + e.getMessage());
         }

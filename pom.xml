@@ -40,6 +40,20 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- Spring JDBC Support -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <version>5.3.23</version> <!-- 请根据实际情况选择版本 -->
+        </dependency>
+
+        <!-- Spring Transaction Management -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+            <version>5.3.23</version> <!-- 请根据实际情况选择版本 -->
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
@@ -61,6 +75,10 @@
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20230227</version> <!-- Use the latest version -->
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
         </dependency>
 
 

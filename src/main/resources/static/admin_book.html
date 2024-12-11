@@ -50,7 +50,7 @@
         <div style="margin-top: 5px">
             <button id="build" class="btn btn-default" style="margin-right:  20px ;width: 80px ;background-color: #168bef;height: 36px;color: #FFFFFF">查询</button>
             <button id="delete" class="btn btn-default" style="margin-right:  20px ;width: 80px ;background-color: #168bef;height: 36px;color: #FFFFFF">删除</button>
-            <button id="blank" class="btn btn-default" style="margin-right:  20px ;width: 80px ;background-color: #168bef;height: 36px;color: #FFFFFF">新增</button>
+            <button id="addNew" class="btn btn-default" style="margin-right:  20px ;width: 80px ;background-color: #168bef;height: 36px;color: #FFFFFF">新增</button>
 
 
 
@@ -102,6 +102,10 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
+        /* 确保搜索框有较低的 z-index */
+        #table .fixed-table-toolbar .bs-searchbar {
+            z-index: 1; /* 设置一个较低的值 */
+        }
     </style>
 
     <table id="mytab" class="table table-hover"></table>
@@ -124,15 +128,12 @@
         <div class="form-group">
             <label>作者</label> <input type="text" class="inputstyle" id="author">
         </div>
-
-        <div class="form-group">
-            <label>书架</label> <input type="text" class="inputstyle" id="shelf">
-        </div>
-        <div class="form-group">
-            <label>类型</label> <input type="text" class="inputstyle" id="type">
-        </div>
-
-
+<!--        <div class="form-group">-->
+<!--            <label>书架</label> <input type="text" class="inputstyle" id="shelf">-->
+<!--        </div>-->
+<!--        <div class="form-group">-->
+<!--            <label>类型</label> <input type="text" class="inputstyle" id="type">-->
+<!--        </div>-->
         <div class="form-group">
             <label>总数</label> <input type="text" class="inputstyle" id="collection_number">
         </div>
@@ -149,6 +150,15 @@
             <label>介绍</label> <input type="text" class="inputstyle" id="introduction">
         </div>
 
+        <form id="uploadForm" enctype="multipart/form-data">
+            <label for="imageFile">选择图片:</label>
+            <input type="file" id="imageFile" name="file" accept="image/*" class="inputstyle">
+            <button type="submit">上传</button>
+        </form>
+
+        <div id="previewImageContainer" style="margin-top: 10px;">
+            <img id="previewImage" src="#" alt="Preview" style="display:none; max-width: 100%;">
+        </div>
 
         <div class="modal-footer">
             <button type="button" class="btn default" data-dismiss="modal" id="close">Close</button>
@@ -167,9 +177,77 @@
     <script src="js/bootstrap-table.js"></script>
     <script src="js/bootstrap-table-export.js"></script>
 
-
+    <script src="https://gw.alipayobjects.com/os/lib/ali-oss/6.17.0/dist/aliyun-oss-sdk.min.js"></script>
     <script>
 
+        $(document).ready(function(){
+            // 绑定新增按钮点击事件
+            $('#addNew').click(function() {
+                // 显示新增表单
+                $(".page-content-wrapper").show();
+
+                // 清空表单
+                $('#book_id, #book_name, #author, #collection_number, #existing_number, #price, #publisher, #introduction').val('');
+            });
+
+            $('#close').click(function() {
+                // 隐藏新增表单
+                $(".page-content-wrapper").hide();
+            });
+
+        });
+
+
+        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            try {
+
+                // 获取签名信息
+                const response = await fetch('/signature');
+                const { accessid, host, policy, signature, expire, key } = await response.json();
+
+                const formData = new FormData();
+                formData.append('key', key);
+                formData.append('policy', policy);
+                formData.append('OSSAccessKeyId', accessid);
+                formData.append('signature', signature);
+                formData.append('success_action_status', '200'); // 确保上传成功时返回 200 状态码
+                formData.append('file', document.getElementById('imageFile').files[0]);
+
+                const uploadResponse = await fetch(host, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (uploadResponse.ok) {
+                    // 获取上传后的文件URL
+                    const imageUrl = `${host}/${key.replace('${filename}', document.getElementById('imageFile').files[0].name)}`;
+                    console.log('Image uploaded successfully:', imageUrl);
+
+                    // 显示预览图片
+                    document.getElementById('previewImage').src = imageUrl;
+                    document.getElementById('previewImage').style.display = 'block';
+
+                    // 将 URL 发送给后端处理
+                    await fetch('/processImageUrl', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ imageUrl })
+                    });
+
+                    alert('图片上传成功并已保存！');
+                } else {
+                    console.error('Upload failed:', uploadResponse.statusText);
+                    alert('图片上传失败，请重试。');
+                }
+            } catch (error) {
+                console.error('Error during upload:', error);
+                alert('上传过程中发生错误，请重试。');
+            }
+        });
 
         //data-url="data/data1.json"
         $(function () {
