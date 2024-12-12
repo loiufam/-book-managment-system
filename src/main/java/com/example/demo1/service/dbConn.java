@@ -63,6 +63,7 @@ public class dbConn {
             System.out.println("插入影响行数为：" + rows);
             return 0;
         } catch (SQLException e) {
+            System.out.println(e);
             return 1;
         }
 
@@ -190,6 +191,7 @@ public class dbConn {
             System.out.println("删除影响行数为：" + rows);
             return 0;
         } catch (SQLException e) {
+            System.out.println(e);
             return 1;
         }
     }

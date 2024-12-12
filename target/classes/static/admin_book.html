@@ -218,7 +218,7 @@
                     console.log('File uploaded:', result);
 
                     // 构建文件的 URL
-                    const fileUrl = client.signatureUrl(file.name);
+                    const fileUrl = `https://lyhimage.oss-cn-guangzhou.aliyuncs.com/${result.name}`;
                     console.log(fileUrl);
                     return fileUrl;
                 } catch (err) {
@@ -267,6 +267,7 @@
                         }else{
                             alert("新增图书失败");
                         }
+                        build();
                     },
                     error: function (e) {
                         console.log(e);

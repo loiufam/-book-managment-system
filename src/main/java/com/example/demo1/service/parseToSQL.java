@@ -227,7 +227,7 @@ public class parseToSQL {
             //Date date = new Date();
             //借/还 已经借过的
             int borrowed = Integer.parseInt(temp.getJSONObject(0).getString("number"));
-
+            String borrowd_time = String.valueOf(temp.getJSONObject(0).getDate("borrow_date"));
             System.out.println("number is "+ number);
 
             String SQLCmdToDelete = "DELETE FROM records WHERE userid = " + "'" + userid + "' and bookid= '" + objectID + "';";
@@ -238,7 +238,7 @@ public class parseToSQL {
                 SQLCmdToInsert = "INSERT INTO records VALUES" + "('" + record_id + "','" + userid + "','" + objectID + "','" + time + "', "+ "NULL" +", '" + currentNum + "');";
             }else {  //要还 已借过 的书
                 String record_id = UUID.randomUUID().toString().replaceAll("-", "");
-                SQLCmdToInsert = "INSERT INTO records VALUES" + "('" + record_id + "','" + userid + "','" + objectID + "'," + "NULL" + ",'"+  time + "', '" + currentNum + "');";
+                SQLCmdToInsert = "INSERT INTO records VALUES" + "('" + record_id + "','" + userid + "','" + objectID + "', '" + borrowd_time + "','"+  time + "', '" + currentNum + "');";
             }
             System.out.println( SQLCmdToDelete );
             System.out.println( SQLCmdToInsert );
