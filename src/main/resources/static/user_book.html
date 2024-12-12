@@ -58,8 +58,6 @@
                 <th data-field="book_id">ID</th>
                 <th data-field="book_name">书名</th>
                 <th data-field="author">作者</th>
-<!--                <th data-field="shelf">书架</th>-->
-<!--                <th data-field="type">类型</th>-->
                 <th data-field="collection_number">总数</th>
                 <th data-field="existing_number">现有</th>
                 <th data-field="price">价格</th>
@@ -228,6 +226,10 @@
             //     alert("请选择借书或者还书！");
             //     return;
             // }
+            if(numm === 0){
+                alert("无效操作！");
+                return;
+            }
 
             // 根据借书还是还书调整numm
             let adjustedNumm = editWay === "0" ? -numm : numm; //"0" 借书 "1" 还书
@@ -243,7 +245,7 @@
 
             // 构造要发送的数据对象
             var data = {
-                id: "1",
+                id: 1,
                 userID: sessionStorage.getItem('userId'), // 当前用户ID
                 objectID: objectID,
                 number: adjustedNumm,
@@ -254,16 +256,16 @@
             $.ajax({
                 type: "POST",
                 url: "userOp", // 处理用户借书/还书的逻辑
-                data: JSON.stringify(data),
+                data: JSON.stringify(data), // 将 JavaScript 对象转换为 JSON 字符串
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (response) {
-                    console.log("操作成功");
+                    console.log(response.msg);
                     // 刷新表格或其他更新UI的操作
                     build(); // 假设这是刷新表格的方法
                     // 隐藏新增表单
-                    $(".page-content-wrapper").hide();
                     alert("操作成功！");
+                    $(".page-content-wrapper").hide();
                 },
                 error: function (error) {
                     console.error("操作失败", error);
@@ -273,17 +275,18 @@
         });
     });
 
+    // $(function () {
+    //     $('#build').click(build);//.trigger('click');
+    //     $('#cells, #rows').keyup(function (e) {
+    //         if (e.keyCode === 13) {
+    //             build();
+    //         }
+    //     });
+    // });
 
-
-    //data-url="data/data1.json"
-    $(function () {
-        $('#build').click(build);//.trigger('click');
-        $('#cells, #rows').keyup(function (e) {
-            if (e.keyCode === 13) {
-                build();
-            }
-        });
-    });
+    $('#build').click(function (){
+        build();
+    })
 
     function actionFormatter(value, row, index) {
         var id = value;
@@ -292,7 +295,6 @@
         result += "<a href='javascript:;' class='btn btn-xs blue' onclick=\"EditViewById('" + id + "')\" title='编辑'><span class='glyphicon glyphicon-circle-arrow-down'></span></a>";
         return result;
     }
-
 
     //表格超出宽度鼠标悬停显示td内容
     function paramsMatter(value, row, index) {
@@ -313,57 +315,22 @@
         }
     }
 
-
-
-
     //查阅所有论文信息信息
     function build(){
         console.log("查询所有的书籍信息");
         build_0("0","0");
     }
 
-
-
-
     function build_0(ID,KIND) {
         //这里写刷新表格连接数据库的报文
-
 
         let data;
         let obj={ID,KIND};
         let post_all=JSON.stringify(obj);
         console.log("post_all"+post_all);
 
-        $.ajax({
-            type: "POST",
-        //    url: "",这里填写数据库调用接口
-            url:"queryAll",
-            dataType: "json",
-            data:post_all,
-            contentType : "application/json",
-            success: function (data_json) {
-                data=data_json,
-                $('#table').bootstrapTable('destroy').bootstrapTable({
-                    columns: columns,
-                    data: data
-                });
-                // build();
-            },
-            error: function () {
-                // alert("错误");
-                alert("查询失败,请重新查询");
-            }
-
-        });
-
-
         let columns = [
 
-            // {
-            //     field:'number',
-            //     title:'index',
-            //     formatter:indexFormatter,
-            // },
             {
                 field: 'book_id',
                 title: 'ID',
@@ -378,20 +345,6 @@
             }, {
                 field: 'author',
                 title: '作者',
-                //editable:true,
-                cellStyle:formatTableUnit,
-                formatter: paramsMatter,
-            },
-            , {
-                field: 'shelf',
-                title: '书架',
-                //editable:true,
-                cellStyle:formatTableUnit,
-                formatter: paramsMatter,
-            },
-            , {
-                field: 'type',
-                title: '类型',
                 //editable:true,
                 cellStyle:formatTableUnit,
                 formatter: paramsMatter,
@@ -431,17 +384,27 @@
                 // formatter: actionFormatter
             }, ];
 
-
-
-
-        $('#table').bootstrapTable('destroy').bootstrapTable({
-            columns: columns,
-            data: data,
-            clickToSelect: true,
-            showPaginationSwitch: true,
+        $.ajax({
+            type: "POST",
+        //    url: "",这里填写数据库调用接口
+            url:"queryAll",
+            dataType: "json",
+            data:post_all,
+            contentType : "application/json",
+            success: function (data_json) {
+                //data=data_json
+                $('#table').bootstrapTable('destroy').bootstrapTable({
+                    columns: columns,  //将查询信息填入表中
+                    data: data_json
+                });
+                // build();
+            },
+            error: function () {
+                // alert("错误");
+                alert("查询失败,请重新查询");
+            }
 
         });
-
 
         $('#table').resize();
 

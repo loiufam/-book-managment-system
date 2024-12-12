@@ -17,7 +17,7 @@
             background: #efefef;
         }
         .backg{
-            background: url("../static/images/bg.jpg") repeat ;
+            background: url("/images/bg.jpg") repeat ;
             overflow: scroll;
             height:100vh;
             display: -webkit-flex;
@@ -136,22 +136,24 @@
         fetch(`/user_books?userId=${encodeURIComponent(userId)}`)
             .then(response => response.json())
             .then(data => { //返回书籍信息列表
-                if (data.length === 0) {
+                console.log("前端收到的响应：" + data);
+                const books = data.data;
+                if (books.length === 0) {
                     // 如果没有书籍，显示提示信息
                     noBooksMessage.style.display = 'block';
                 } else {
                     // 动态渲染书籍信息
-                    data.forEach(book => {
+                    books.forEach(book => {
                         const bookItem = document.createElement('div');
                         bookItem.className = 'book-item';
 
                         bookItem.innerHTML = `
-                        <img src="${book.imageUrl}" alt="${book.bookName} Cover" class="book-image">
+                        <img src="${book.imageUrl}" alt="${book.title} Cover" class="book-image">
                         <div class="book-details">
-                            <p class="book-title">书名：${book.bookName}</p>
+                            <p class="book-title">书名：${book.title}</p>
                             <p>作者：${book.author}</p>
                             <p>出版社：${book.publisher}</p>
-                            <p class="borrow-count">借阅数量：${book.borrowCount} 次</p>
+                            <p class="borrow-count">借阅数量：${book.borrowCount} 本</p>
                         </div>
                     `;
 
@@ -170,129 +172,127 @@
             });
     });
     //data-url="data/data1.json"
-    $(function () {
-        $('#build').click(build);//.trigger('click');
-        $('#cells, #rows').keyup(function (e) {
-            if (e.keyCode === 13) {
-                build();
-            }
-        });
-    });
+    // $(function () {
+    //     $('#build').click(build);//.trigger('click');
+    //     $('#cells, #rows').keyup(function (e) {
+    //         if (e.keyCode === 13) {
+    //             build();
+    //         }
+    //     });
+    // });
 
 
-    //表格超出宽度鼠标悬停显示td内容
-    function paramsMatter(value, row, index) {
-        var span = document.createElement("span");
-        span.setAttribute("title", value);
-        span.innerHTML = value;
-        return span.outerHTML;
-    }
-    //td宽度以及内容超过宽度隐藏
-    function formatTableUnit(value, row, index) {
-        return {
-            css: {
-                "white-space": "nowrap",
-                "text-overflow": "ellipsis",
-                "overflow": "hidden",
-                "max-width": "80px"
-            }
-        }
-    }
+    // //表格超出宽度鼠标悬停显示td内容
+    // function paramsMatter(value, row, index) {
+    //     var span = document.createElement("span");
+    //     span.setAttribute("title", value);
+    //     span.innerHTML = value;
+    //     return span.outerHTML;
+    // }
+    // //td宽度以及内容超过宽度隐藏
+    // function formatTableUnit(value, row, index) {
+    //     return {
+    //         css: {
+    //             "white-space": "nowrap",
+    //             "text-overflow": "ellipsis",
+    //             "overflow": "hidden",
+    //             "max-width": "80px"
+    //         }
+    //     }
+    // }
 
     //***********************************************************************************************************************************
-    // 选择请求的类型,并显示在列表上   {id: , kind: }, id表示动作, kind表示书还是论文
-    function build_0(ID) {
-
-        let columns = [
-
-            // {
-            //     field:'number',
-            //     title:'index',
-            //     formatter:indexFormatter,
-            // },
-            {
-                field: 'user_id',
-                title: '用户ID',
-                cellStyle: formatTableUnit,
-                formatter: paramsMatter,
-            }, {
-                field: 'object_id',
-                title: '书籍ID',
-                cellStyle: formatTableUnit,
-                formatter: paramsMatter,
-                //editable:true,
-            }, {
-                field: 'book_name',
-                title: '书名',
-                //editable:true,
-                cellStyle: formatTableUnit,
-                formatter: paramsMatter,
-            }, {
-                field: 'number',
-                title: '借阅数量',
-                cellStyle: formatTableUnit,
-                formatter: paramsMatter,
-            }, {
-                field: 'date',
-                title: '借阅日期',
-                cellStyle: formatTableUnit,
-                formatter: paramsMatter,
-            },];
-
-
-
-        //这里写刷新表格连接数据库的报文
-        let data;
-        let obj={ID};
-        let post_all=JSON.stringify(obj);
-        console.log(post_all)
-        //
-
-        $.ajax({
-            type: "POST",
-            url: "/queryRecords",   //填写查询借阅记录的url
-            dataType: "json",
-            data:post_all,
-            contentType : "application/json",
-            success: function (data_json) {
-                console.log(data_json),
-                    data =data_json,
-
-                    $('#table').bootstrapTable('destroy').bootstrapTable({
-                        columns: columns,
-                        data: data
-                    });
-                // build();
-                alert("请前往查询界面进行归还操作");
-            },
-            error: function () {
-                alert("查询失败,请重新查询");
-            }
-        });
-
-
-
-        $('#table').bootstrapTable('destroy').bootstrapTable({
-            columns: columns,
-            data: data,
-            clickToSelect: true,
-            showPaginationSwitch: true,
-
-        });
-
-
-        $('#table').resize();
-
-    }
-
-
-    //查阅所有书籍信息
-    function build(){
-        console.log("查询所有的论文信息");
-        build_0("5");
-    }
-
-
+    // // 选择请求的类型,并显示在列表上   {id: , kind: }, id表示动作, kind表示书还是论文
+    // function build_0(ID) {
+    //
+    //     let columns = [
+    //
+    //         // {
+    //         //     field:'number',
+    //         //     title:'index',
+    //         //     formatter:indexFormatter,
+    //         // },
+    //         {
+    //             field: 'user_id',
+    //             title: '用户ID',
+    //             cellStyle: formatTableUnit,
+    //             formatter: paramsMatter,
+    //         }, {
+    //             field: 'object_id',
+    //             title: '书籍ID',
+    //             cellStyle: formatTableUnit,
+    //             formatter: paramsMatter,
+    //             //editable:true,
+    //         }, {
+    //             field: 'book_name',
+    //             title: '书名',
+    //             //editable:true,
+    //             cellStyle: formatTableUnit,
+    //             formatter: paramsMatter,
+    //         }, {
+    //             field: 'number',
+    //             title: '借阅数量',
+    //             cellStyle: formatTableUnit,
+    //             formatter: paramsMatter,
+    //         }, {
+    //             field: 'date',
+    //             title: '借阅日期',
+    //             cellStyle: formatTableUnit,
+    //             formatter: paramsMatter,
+    //         },];
+    //
+    //
+    //
+    //     //这里写刷新表格连接数据库的报文
+    //     let data;
+    //     let obj={ID};
+    //     let post_all=JSON.stringify(obj);
+    //     console.log(post_all)
+    //     //
+    //
+    //     $.ajax({
+    //         type: "POST",
+    //         url: "/queryRecords",   //填写查询借阅记录的url
+    //         dataType: "json",
+    //         data:post_all,
+    //         contentType : "application/json",
+    //         success: function (data_json) {
+    //             console.log(data_json),
+    //                 data =data_json,
+    //
+    //                 $('#table').bootstrapTable('destroy').bootstrapTable({
+    //                     columns: columns,
+    //                     data: data
+    //                 });
+    //             // build();
+    //             alert("请前往查询界面进行归还操作");
+    //         },
+    //         error: function () {
+    //             alert("查询失败,请重新查询");
+    //         }
+    //     });
+    //
+    //
+    //
+    //     $('#table').bootstrapTable('destroy').bootstrapTable({
+    //         columns: columns,
+    //         data: data,
+    //         clickToSelect: true,
+    //         showPaginationSwitch: true,
+    //
+    //     });
+    //
+    //
+    //     $('#table').resize();
+    //
+    // }
+    //
+    //
+    // //查阅所有书籍信息
+    // function build(){
+    //     console.log("查询所有的论文信息");
+    //     build_0("5");
+    // }
 
 </script>
 </body>

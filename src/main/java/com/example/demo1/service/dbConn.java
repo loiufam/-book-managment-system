@@ -5,6 +5,9 @@ import com.huawei.shade.com.alibaba.fastjson.JSONObject;
 
 import java.sql.*;
 
+import static com.sun.org.apache.xalan.internal.lib.ExsltDatetime.formatDate;
+import static javax.swing.UIManager.getString;
+
 /*
     数据库相关操作
  */
@@ -150,17 +153,16 @@ public class dbConn {
         }
         else  //查询records
         {
-            while (rs1.next()) {
+            while (rs1 != null && rs1.next()) {
                 JSONObject temp = new JSONObject();
                 temp.put("user_id", rs1.getString("userid").trim());
-                temp.put("book_id", rs1.getString("bookid").trim());
-                temp.put("number", rs1.getString("number").trim());
-                temp.put("borrow_date", rs1.getDate("borrow_date"));
-                temp.put("return_date", rs1.getString("return_date").trim());
-                //temp.put("book_name", rs1.getString("book_name"));
+                temp.put("book_id", rs1.getString("bookid"));
+                temp.put("number", rs1.getString("number"));
+                temp.put("borrow_date", rs1.getDate("borrow_date")); // 格式化日期
+                temp.put("return_date", rs1.getDate("return_date")); // 格式化日期
                 queryResult.add(temp);
+                System.out.println("查询records：" + temp);
             }
-
         }
 
         queryResultReturned = queryResult;
@@ -183,7 +185,6 @@ public class dbConn {
         try {
             Statement statement = dbConnection.createStatement(); // Statement对象
             int rows;
-            SQLCmd="DELETE FROM books WHERE book_id = '9';";
             System.out.println(SQLCmd);
             rows = statement.executeUpdate(SQLCmd);
             System.out.println("删除影响行数为：" + rows);

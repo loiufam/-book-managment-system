@@ -9,5 +9,5 @@ public class BookBorrowDTO {
     private String imageUrl;
     private String author;
     private String publisher;
-    private Long borrowCount;
+    private String borrowCount;
 }
