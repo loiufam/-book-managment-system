@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="./css/bootstrap-table.min.css">
     <link rel="stylesheet" href="./css/bootstrap-editable.css" type="text/css">
     <link rel="shortcut icon" href="./favicon.ico">
-
+    <title>用户借还书界面</title>
     <style>
         #table tr:nth-child(even){
             background: #fafafa;
@@ -29,7 +29,6 @@
 
         <a href="./user_paper.html">
             <button class="btn btn-default" style="margin-right:  20px ;width: 120px ;background-color: #7ED321;height: 36px;color: #FFFFFF">论文板块</button>
-
         </a>
         <a href="./user_record.html">
             <button class="btn btn-default" style="margin-right:  20px ;width: 120px ;background-color: #7ED321;height: 36px;color: #FFFFFF">借阅记录</button>
@@ -40,11 +39,11 @@
 
         <p></p>
         <button id="build" class="btn btn-default" style="margin-right:  20px ;width: 80px ;background-color: #168bef;height: 36px;color: #FFFFFF">查阅</button>
-        <button id="addNew" class="btn btn-default" style="margin-right: 20px; width: 80px; background-color: #28a745; height: 36px; color: #FFFFFF">新增</button>
+        <button id="addNew" class="btn btn-default" style="margin-right: 20px; width: 80px; background-color: #28a745; height: 36px; color: #FFFFFF">借书/还书</button>
         <!--<button id="delete" class="btn btn-default">Delete</button>-->
         <!--<button id="blank" class="btn btn-default">Add a blank line</button>-->
     </div>
-    <div class = table-responsive">
+    <div class = "table-responsive" style="position: relative;">
         <table id="table"
                class="table text-nowrap"
                data-toggle="table"
@@ -59,8 +58,8 @@
                 <th data-field="book_id">ID</th>
                 <th data-field="book_name">书名</th>
                 <th data-field="author">作者</th>
-                <th data-field="shelf">书架</th>
-                <th data-field="type">类型</th>
+<!--                <th data-field="shelf">书架</th>-->
+<!--                <th data-field="type">类型</th>-->
                 <th data-field="collection_number">总数</th>
                 <th data-field="existing_number">现有</th>
                 <th data-field="price">价格</th>
@@ -78,6 +77,7 @@
     .page-content-wrapper {
         width: 800px;
         position: absolute;
+        z-index: 1000;
         top: 10%;
         left: 24%;
         background: #fff;
@@ -97,6 +97,10 @@
         border: 1px solid #ccc;
         border-radius: 4px;
     }
+    /* 确保搜索框有较低的 z-index */
+    #table .fixed-table-toolbar .bs-searchbar {
+        z-index: 1; /* 设置一个较低的值 */
+    }
 </style>
 
 <table id="mytab" class="table table-hover"></table>
@@ -109,20 +113,19 @@
         <input type="radio" name="edit_way" id="rbtBorrow" value="0">
         <label for="rbtReturn">还书：</label>
         <input type="radio" name="edit_way" id="rbtReturn" value="1">
-
     </div>
-    <p>请确认要借阅/归还的ID和书名是否正确：</p>
+    <p>请确认要借阅/归还的ID是否正确：</p>
     <div class="form-group">
-        <label>当前图书ID为：</label> <input type="text" class="inputstyle" id="book_id">
-    </div>
-    <div class="form-group">
-        <label>书名为：</label> <input type="text" class="inputstyle" id="book_name">
+        <label>当前图书ID为：</label> <input type="text" class="inputstyle" id="book_id" onblur="fetchBookDetails()">
     </div>
     <div class="form-group">
-        <label>当前图书总共有：</label> <input type="text" class="inputstyle" id="collection_number">
+        <label>书名为：</label> <input type="text" class="inputstyle" id="book_name" readonly>
     </div>
     <div class="form-group">
-        <label>现有库存：</label> <input type="text" class="inputstyle" id="existing_number">
+        <label>当前图书总共有：</label> <input type="text" class="inputstyle" id="collection_number" readonly>
+    </div>
+    <div class="form-group">
+        <label>现有库存：</label> <input type="text" class="inputstyle" id="existing_number" readonly>
     </div>
     <div class="form-group">
         <label>请输入要借阅/归还的数目：</label> <input type="text" class="inputstyle" id="numm">
@@ -150,7 +153,43 @@
     var price;
     var publisher;
     var introduction;
+    // 实现输入完book_id后自动获取书籍信息
+    function fetchBookDetails() {
+        const bookId = $("#book_id").val().trim();
 
+        if (bookId) {
+            $.ajax({
+                url: '/get-book-details', // 替换为你的API路径
+                method: 'GET',
+                data: { book_id: bookId },
+                success: function(response) {
+                    if (response.success) {
+                        const { book_name, collection_number, existing_number } = response.data;
+                        $("#book_name").val(book_name);
+                        $("#collection_number").val(collection_number);
+                        $("#existing_number").val(existing_number);
+                    } else {
+                        alert('未找到相关图书信息');
+                        clearBookDetails();
+                    }
+                },
+                error: function(error) {
+                    console.error('Error fetching book details:', error);
+                    alert('获取图书信息失败，请重试');
+                    clearBookDetails();
+                }
+            });
+        } else {
+            alert("请输入正确的书本ID！")
+            clearBookDetails();
+        }
+    }
+
+    function clearBookDetails() {
+        $("#book_name").val('');
+        $("#collection_number").val('');
+        $("#existing_number").val('');
+    }
 
     $(document).ready(function(){
         // 绑定新增按钮点击事件
@@ -170,7 +209,7 @@
             $(".page-content-wrapper").hide();
         });
 
-        $('#updateBtn').click(function () {
+        $('#updateBtn').click(function () { //主要修改records表
             // 获取表单数据
             var objectID = $("#book_id").val().trim();
             var book_name = $("#book_name").val().trim();
@@ -180,18 +219,18 @@
             var editWay = $('input[name="edit_way"]:checked').val();
 
             // 简单验证输入
-            if (!objectID || !book_name || isNaN(collection_number) || isNaN(existing_number) || isNaN(numm)) {
+            if (!objectID || isNaN(numm)) {
                 alert('请填写所有必填项，并确保数量为有效数字');
                 return;
             }
 
-            if (!editWay) {
-                alert("请选择借书或者还书！");
-                return;
-            }
+            // if (!editWay) {
+            //     alert("请选择借书或者还书！");
+            //     return;
+            // }
 
             // 根据借书还是还书调整numm
-            let adjustedNumm = editWay === "0" ? -numm : numm;
+            let adjustedNumm = editWay === "0" ? -numm : numm; //"0" 借书 "1" 还书
 
             // 验证库存与总数
             if (adjustedNumm < 0 && Math.abs(adjustedNumm) > existing_number) {
@@ -205,7 +244,7 @@
             // 构造要发送的数据对象
             var data = {
                 id: "1",
-                userID: "后端判断", // 这个字段可能需要根据实际情况调整
+                userID: sessionStorage.getItem('userId'), // 当前用户ID
                 objectID: objectID,
                 number: adjustedNumm,
                 book_name: book_name
@@ -214,7 +253,7 @@
             // 发送AJAX请求以保存新书信息或更新库存
             $.ajax({
                 type: "POST",
-                url: "userOp", // 替换为你的实际接口地址
+                url: "userOp", // 处理用户借书/还书的逻辑
                 data: JSON.stringify(data),
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",

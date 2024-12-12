@@ -26,17 +26,15 @@ public class registerController {
     @RequestMapping(path = "/register",method = RequestMethod.POST)
     @ResponseBody
     public JSONObject register(@RequestBody(required=false) JSONObject user) throws SQLException {
-        System.out.println("++++++++++++++++++++++"+user);
-//        System.out.println(user.getUser_name());
         JSONObject json = new JSONObject();
         String image_url = user.getString("avatarUrl");
-
         json.put("id","-2");
         json.put("user_id",user.getString("user_name"));
         json.put("pwd",user.getString("user_password"));
         json.put("stuID",user.getString("stuID"));
+        json.put("identity",user.getIntValue("identity")); //注册身份
         json.put("image_url",image_url);
-        System.out.println("0000000000000000         "+json);
+
         System.out.println("后端收到的图片url:" + image_url);
 
         String ret = temp.parse(json);

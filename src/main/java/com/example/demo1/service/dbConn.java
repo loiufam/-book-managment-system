@@ -65,9 +65,9 @@ public class dbConn {
 
     }
 
-    // 执行查询SQL
+    // 执行查询SQL(三表查询入口)
     public String QueryDB(String SQLCmd, int kind) throws SQLException {
-        //kind 0 books 1 papers 2 records
+        //kind: 0 books 1 papers 2 records
         Statement statement = dbConnection.createStatement(); // Statement对象
         ResultSet rs; // 结果集合
         System.out.println(SQLCmd);
@@ -152,11 +152,12 @@ public class dbConn {
         {
             while (rs1.next()) {
                 JSONObject temp = new JSONObject();
-                temp.put("user_id", rs1.getString("user_id").trim());
-                temp.put("object_id", rs1.getString("object_id").trim());
+                temp.put("user_id", rs1.getString("userid").trim());
+                temp.put("book_id", rs1.getString("bookid").trim());
                 temp.put("number", rs1.getString("number").trim());
-                temp.put("date", rs1.getDate("date"));
-                temp.put("book_name", rs1.getString("book_name"));
+                temp.put("borrow_date", rs1.getDate("borrow_date"));
+                temp.put("return_date", rs1.getString("return_date").trim());
+                //temp.put("book_name", rs1.getString("book_name"));
                 queryResult.add(temp);
             }
 

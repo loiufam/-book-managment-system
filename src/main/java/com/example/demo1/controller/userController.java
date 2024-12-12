@@ -2,10 +2,15 @@ package com.example.demo1.controller;
 
 
 import com.example.demo1.model.BookBorrowDTO;
+import com.example.demo1.model.BookResponse;
 import com.example.demo1.model.books;
+import com.example.demo1.service.BookService;
 import com.example.demo1.service.parseToSQL;
 import com.huawei.shade.com.alibaba.fastjson.JSONArray;
 import com.huawei.shade.com.alibaba.fastjson.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -92,5 +97,20 @@ public class userController {
         errorResponse.put("status", "error");
         errorResponse.put("msg", message);
         return errorResponse;
+    }
+
+    @Autowired
+    private BookService bookService;
+
+    @GetMapping("/get-book-details")
+    @ResponseBody
+    public ResponseEntity<BookResponse> getBookDetails(@RequestParam("book_id") String bookId) {
+        try{
+            books book = bookService.getBookDetails(bookId);
+            return new ResponseEntity<>(new BookResponse(true, "成功", book), HttpStatus.OK);
+        }catch (Exception r){
+            // 处理异常
+            return new ResponseEntity<>(new BookResponse(false, "服务器错误，请稍后再试"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

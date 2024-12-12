@@ -50,7 +50,7 @@
         <div style="margin-top: 5px">
             <button id="build" class="btn btn-default" style="margin-right:  20px ;width: 80px ;background-color: #168bef;height: 36px;color: #FFFFFF">查询</button>
             <button id="delete" class="btn btn-default" style="margin-right:  20px ;width: 80px ;background-color: #168bef;height: 36px;color: #FFFFFF">删除</button>
-            <button id="blank" class="btn btn-default" style="margin-right:  20px ;width: 80px ;background-color: #168bef;height: 36px;color: #FFFFFF">新增</button>
+            <button id="addNew" class="btn btn-default" style="margin-right:  20px ;width: 80px ;background-color: #168bef;height: 36px;color: #FFFFFF">新增</button>
 
 
 
@@ -63,8 +63,8 @@
                         <th data-field="book_id">ID</th>
                         <th data-field="book_name">书名</th>
                         <th data-field="author">作者</th>
-                        <th data-field="shelf">书架</th>
-                        <th data-field="type">类型</th>
+<!--                        <th data-field="shelf">书架</th>-->
+<!--                        <th data-field="type">类型</th>-->
                         <th data-field="collection_number">总数</th>
                         <th data-field="existing_number">现有</th>
                         <th data-field="price">价格</th>
@@ -82,6 +82,7 @@
         .page-content-wrapper {
             width: 800px;
             position: absolute;
+            z-index: 1000;
             top: 10%;
             left: 24%;
             background: #fff;
@@ -101,6 +102,10 @@
             background-image: none;
             border: 1px solid #ccc;
             border-radius: 4px;
+        }
+        /* 确保搜索框有较低的 z-index */
+        #table .fixed-table-toolbar .bs-searchbar {
+            z-index: 1; /* 设置一个较低的值 */
         }
     </style>
 
@@ -124,15 +129,12 @@
         <div class="form-group">
             <label>作者</label> <input type="text" class="inputstyle" id="author">
         </div>
-
-        <div class="form-group">
-            <label>书架</label> <input type="text" class="inputstyle" id="shelf">
-        </div>
-        <div class="form-group">
-            <label>类型</label> <input type="text" class="inputstyle" id="type">
-        </div>
-
-
+<!--        <div class="form-group">-->
+<!--            <label>书架</label> <input type="text" class="inputstyle" id="shelf">-->
+<!--        </div>-->
+<!--        <div class="form-group">-->
+<!--            <label>类型</label> <input type="text" class="inputstyle" id="type">-->
+<!--        </div>-->
         <div class="form-group">
             <label>总数</label> <input type="text" class="inputstyle" id="collection_number">
         </div>
@@ -149,6 +151,14 @@
             <label>介绍</label> <input type="text" class="inputstyle" id="introduction">
         </div>
 
+        <form id="uploadForm" enctype="multipart/form-data">
+            <label for="imageFile">选择图片:</label>
+            <input type="file" id="imageFile" name="file" accept="image/*" class="inputstyle">
+        </form>
+
+        <div id="previewImageContainer" style="margin-top: 10px;">
+            <img id="previewImage" src="#" alt="Preview" style="display:none; max-width: 100%;">
+        </div>
 
         <div class="modal-footer">
             <button type="button" class="btn default" data-dismiss="modal" id="close">Close</button>
@@ -167,11 +177,112 @@
     <script src="js/bootstrap-table.js"></script>
     <script src="js/bootstrap-table-export.js"></script>
 
-
+    <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.16.0.min.js"></script>
     <script>
 
+        $("#updateBtn").click(function (){
+            updateBook();
+        })
 
-        //data-url="data/data1.json"
+        $(document).ready(function(){
+            // 绑定新增按钮点击事件
+            $('#addNew').click(function() {
+                // 显示新增表单
+                $(".page-content-wrapper").show();
+
+                // 清空表单
+                $('#book_id, #book_name, #author, #collection_number, #existing_number, #price, #publisher, #introduction').val('');
+            });
+
+            $('#close').click(function() {
+                // 隐藏新增表单
+                $(".page-content-wrapper").hide();
+            });
+        });
+
+        function updateBook(){
+            let avatarInput = document.getElementById('imageFile');
+            let avatarFile = avatarInput.files[0]; // 获取用户选择的第一个文件
+
+            async function uploadFileToOSS(file) {
+                // 初始化 OSS 客户端
+                const client = new OSS({
+                    region: 'oss-cn-guangzhou',
+                    accessKeyId: 'LTAI5tRTt6mNJWSsKgLhBBg2',
+                    accessKeySecret: '57euejpndMjxkv4Hq6YmI1fI6KcPdf',
+                    bucket: 'lyhimage'
+                });
+                try {
+                    // 上传文件
+                    const result = await client.put(file.name, file);
+                    console.log('File uploaded:', result);
+
+                    // 构建文件的 URL
+                    const fileUrl = client.signatureUrl(file.name);
+                    console.log(fileUrl);
+                    return fileUrl;
+                } catch (err) {
+                    console.error('Error uploading file:', err);
+                    throw err;
+                }
+            }
+
+            url_global = ""
+            uploadFileToOSS(avatarFile).then(url => {
+                url_global = url; // 返回的图片url
+                console.log('Uploaded file URL:', url);
+                let obj = {};
+                obj.id = 4;
+                obj.kind = 0;  //图书操作
+                obj.book_id = $("input[id='book_id']").val();//ID
+                obj.book_name = $("input[id='book_name']").val();//书名
+                obj.author = $("input[id='author']").val();
+                obj.collection_number = $("input[id='collection_number']").val();
+                obj.existing_number = $("input[id='existing_number']").val();
+                obj.price = $("input[id='price']").val();
+                obj.publisher = $("input[id='publisher']").val();
+                obj.introduction= $("input[id='introduction']").val();
+                obj.avatarUrl = url_global;//头像url
+
+                let post_all=JSON.stringify(obj);
+                console.log(post_all);
+                // 发送给后端
+                $.ajax({
+                    type: "POST",
+                    url: "/modify",
+                    dataType: "json",
+                    data:post_all,
+                    contentType : "application/json",
+                    success: function (data) { //传回来的json
+
+                        console.log(data.msg); //传回的信号
+                        console.log("success");
+                        // alert(data.msg);
+                        setTimeout(function(){
+
+                        },3000);
+
+                        if(data.msg==="1"){
+                            alert("新增图书成功");
+                        }else{
+                            alert("新增图书失败");
+                        }
+                    },
+                    error: function (e) {
+                        console.log(e);
+                    }
+                })
+            }).catch(err => {
+                alert("上传失败!");
+                console.error('Failed to upload file:', err);
+            });
+
+            // 隐藏新增表单
+            $(".page-content-wrapper").hide();
+
+        }
+
+
         $(function () {
             $('#build').click(build);//.trigger('click');
             $('#cells, #rows').keyup(function (e) {
@@ -210,17 +321,9 @@
         }
 
 
-
-
-
-
-
-
-
         //***********************************************************************************************************************************
         // 选择请求的类型,并显示在列表上   {id: , kind: }, id表示动作, kind表示书还是论文
         function build_0(ID,KIND) {
-
 
             let columns = [
 
@@ -301,13 +404,11 @@
                 },];
 
 
-
             //这里写刷新表格连接数据库的报文
             let data;
             let obj={ID,KIND};
             let post_all=JSON.stringify(obj);
             console.log(post_all);
-
 
 
             $.ajax({
@@ -333,7 +434,6 @@
             });
 
 
-
             $('#table').bootstrapTable('destroy').bootstrapTable({
                 columns: columns,
                 data: data,
@@ -348,13 +448,11 @@
 
         }
 
-
         //查阅所有书籍信息
         function build(){
             console.log("查询所有的书籍信息");
             build_0("0","0");
         }
-
         //***********************************************************************************************************************************
 
 
@@ -379,13 +477,6 @@
             $('#introduction').val(data.introduction)
 
         }
-
-
-
-
-        $("#close").on("click", function () {
-            $(".page-content-wrapper").hide();
-        })
 
         $("#blank").click(function () {
             var blank = {
@@ -457,76 +548,76 @@
         });
 
 
-        $("#updateBtn").on("click", function () {
-            var obj = document.getElementsByName('edit_way'); //选择所有name="'edit_way'"的对象，返回数组
-            //取到对象数组后，我们来循环检测它是不是被选中
-            var s = '';
-            for (var i = 0; i < obj.length; i++) {
-                if (obj[i].checked) s += obj[i].value + ','; //如果选中，将value添加到变量s中
-            }
-            // if (s.length == 0) {
-            //     alert("还没有选择任何编辑方式！")
-            // }
-            // else if (s.length == 4) {
-            //     alert("不能同时选择两种编辑方式！")
-            // }
-            // else{
-            //     let edit_id = s[0].toString();
-                let book_id = $("#book_id").val();
-                let book_name = $("#book_name").val();
-                let author = $("#author").val();
-                let shelf = $("#shelf").val();
-                let type = $("#type").val();
-                let collection_number = $("#collection_number").val();
-                let existing_number = $("#existing_number").val();
-                let price = $("#price").val();
-                let publisher = $("#publisher").val();
-                let introduction = $("#introduction").val();
-                console.log(book_id,book_name,author,collection_number,author,collection_number,existing_number,price,publisher,introduction);
-
-                let obj12={};
-                obj12.id          =4          ;
-                obj12.objectID          =book_id          ;
-                obj12.kind             = 0;
-                obj12.book_name        =book_name        ;
-                obj12.author           =author           ;
-                obj12.shelf        =shelf        ;
-                obj12.type           =type           ;
-                obj12.collection_number=collection_number;
-                obj12.existing_number  =existing_number  ;
-                obj12.price            =price            ;
-                obj12.publisher        =publisher        ;
-                obj12.introduction     =introduction     ;
-                console.log(obj12);
-
-                let postModify=JSON.stringify(obj12);
-
-                console.log(postModify);
-
-                // 下面填写ajax报文
-                $.ajax({
-                    type: "post",
-                    url: "/modify" ,  //填写数据库url
-                    dataType: "json",
-                    contentType : "application/json",
-                    data:postModify,
-                    success: function (data) {
-                        // $("#table").bootstrapTable('refresh');
-                        alert("提交成功");
-                        // location = location;
-                        console.log(data);
-                        build();
-                        console.log("success");
-                    },
-                    error: function () {
-                        alert("更改失败, 请重新更改");
-                    }
-                })
-
-            // }
-
-
-        })
+        // $("#updateBtn").on("click", function () {
+        //     var obj = document.getElementsByName('edit_way'); //选择所有name="'edit_way'"的对象，返回数组
+        //     //取到对象数组后，我们来循环检测它是不是被选中
+        //     var s = '';
+        //     for (var i = 0; i < obj.length; i++) {
+        //         if (obj[i].checked) s += obj[i].value + ','; //如果选中，将value添加到变量s中
+        //     }
+        //     // if (s.length == 0) {
+        //     //     alert("还没有选择任何编辑方式！")
+        //     // }
+        //     // else if (s.length == 4) {
+        //     //     alert("不能同时选择两种编辑方式！")
+        //     // }
+        //     // else{
+        //     //     let edit_id = s[0].toString();
+        //         let book_id = $("#book_id").val();
+        //         let book_name = $("#book_name").val();
+        //         let author = $("#author").val();
+        //         let shelf = $("#shelf").val();
+        //         let type = $("#type").val();
+        //         let collection_number = $("#collection_number").val();
+        //         let existing_number = $("#existing_number").val();
+        //         let price = $("#price").val();
+        //         let publisher = $("#publisher").val();
+        //         let introduction = $("#introduction").val();
+        //         console.log(book_id,book_name,author,collection_number,author,collection_number,existing_number,price,publisher,introduction);
+        //
+        //         let obj12={};
+        //         obj12.id          =4          ;
+        //         obj12.objectID          =book_id          ;
+        //         obj12.kind             = 0;
+        //         obj12.book_name        =book_name        ;
+        //         obj12.author           =author           ;
+        //         obj12.shelf        =shelf        ;
+        //         obj12.type           =type           ;
+        //         obj12.collection_number=collection_number;
+        //         obj12.existing_number  =existing_number  ;
+        //         obj12.price            =price            ;
+        //         obj12.publisher        =publisher        ;
+        //         obj12.introduction     =introduction     ;
+        //         console.log(obj12);
+        //
+        //         let postModify=JSON.stringify(obj12);
+        //
+        //         console.log(postModify);
+        //
+        //         // 下面填写ajax报文
+        //         $.ajax({
+        //             type: "post",
+        //             url: "/modify" ,  //填写数据库url
+        //             dataType: "json",
+        //             contentType : "application/json",
+        //             data:postModify,
+        //             success: function (data) {
+        //                 // $("#table").bootstrapTable('refresh');
+        //                 alert("提交成功");
+        //                 // location = location;
+        //                 console.log(data);
+        //                 build();
+        //                 console.log("success");
+        //             },
+        //             error: function () {
+        //                 alert("更改失败, 请重新更改");
+        //             }
+        //         })
+        //
+        //     // }
+        //
+        //
+        // })
 
 
     </script>

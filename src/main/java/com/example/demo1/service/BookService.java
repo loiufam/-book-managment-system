@@ -1,0 +1,19 @@
+package com.example.demo1.service;
+
+
+import com.example.demo1.model.books;
+import org.springframework.stereotype.Service;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+
+@Service
+public class BookService {
+    public books getBookDetails(String bookId) throws SQLException {
+        if (bookId == null || bookId.isEmpty()) {
+            throw new IllegalArgumentException("图书ID不能为空");
+        }
+        parseToSQL temp = new parseToSQL();
+        return temp.getBookDetails(bookId);
+    }
+}

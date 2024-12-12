@@ -133,7 +133,7 @@
 
         // 假设有一个获取书籍信息的API端点，要在路径参数加上userId
         let userId = sessionStorage.getItem('userId'); //获取当前登陆用户id
-        fetch('/user_books?userId=${encodeURIComponent(userId)}')
+        fetch(`/user_books?userId=${encodeURIComponent(userId)}`)
             .then(response => response.json())
             .then(data => { //返回书籍信息列表
                 if (data.length === 0) {

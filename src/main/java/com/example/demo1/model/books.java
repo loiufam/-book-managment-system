@@ -10,6 +10,16 @@ public class books {
     private String publisher;
     private String introduction;
 
+    public books(){}
+
+    // 全参构造器
+    public books(String bookName, String author, String collectionNumber, String existingNumber) {
+        this.book_name = bookName;
+        this.author = author;
+        this.collection_number = collectionNumber;
+        this.existing_number = existingNumber;
+    }
+
     public String getBook_id() {
         return book_id;
     }

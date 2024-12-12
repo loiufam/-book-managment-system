@@ -23,10 +23,10 @@ public class adminController {
         JSONArray jsonArray = new JSONArray();
 
 
-        System.out.print("---------------="+json_search);
+        System.out.print("查询文献："+json_search);
         JSONObject tempJSON = new JSONObject();
         tempJSON.put("kind", json_search.getString("KIND"));
-        System.out.println("11111111111111111111111"+json_search.getString("KIND"));
+        //System.out.println("11111111111111111111111"+json_search.getString("KIND"));
         tempJSON.put("id", "0");
 
         parseToSQL temp = new parseToSQL();
@@ -104,67 +104,52 @@ public class adminController {
 
     @RequestMapping(path = "/modify", method = RequestMethod.POST) //borrow and return
     @ResponseBody
-    public String modify(@RequestBody(required = false) JSONObject jsonObject) throws SQLException {
+    public JSONObject modify(@RequestBody(required = false) JSONObject jsonObject) throws SQLException {
 //● 操作id "id:3"
 //● 文献id objectID
 //● 文献类别(0:图书,1:论文) kind
 //● 插入还是删除 IOD (0:插入/1:删除)
-//● 文献的介绍 1.图书('id',''名字','作者','数量','数量','价格','出版社','介绍')  2-论文('id','名字','作者','时间','期刊会议名称','期号','卷号','页号','DOI')  分割号是逗号------合并成一个字符串 introduction 删除此项留空即可
-//        let obj12={};
-//        obj12.id          =4          ;
-//        obj12.objectID          =book_id          ;
-//        obj12.kind             = 0;
-//        obj12.book_name        =book_name        ;
-//        obj12.author           =author           ;
-//        obj12.collection_number=collection_number;
-//        obj12.existing_number  =existing_number  ;
-//        obj12.price            =price            ;
-//        obj12.publisher        =publisher        ;
-//        obj12.introduction     =introduction     ;
-//        ● 操作id "id:4"
+
+//● 操作id "id:4"
 //● 文献id objectID
 //● 文献类别(0:图书,1:论文) kind
 //● 文献的介绍 1.图书('id',''名字','作者','数量','数量','价格','出版社','介绍')  2-论文('id','名字','作者','时间','期刊会议名称','期号','卷号','页号','DOI')  分割号是逗号------合并成一个字符串 introduction 删除此项留空即可
-        System.out.println("打印======================="+jsonObject);
-        String book_id = jsonObject.getString("objectID");
+        System.out.println("前端传来新增信息"+jsonObject);
+
         parseToSQL temp2 = new parseToSQL();
-        JSONObject jsonObject1 = new JSONObject();
-        jsonObject1.put("id", "4");
-        jsonObject1.put("objectID", jsonObject.getString("objectID"));
-        jsonObject1.put("kind", jsonObject.getString("kind"));
-        System.out.println("===================================================="+jsonObject.getString("kind"));
-        String intro = "";
-        if(jsonObject.getString("kind").equals("0")){
-            intro = "'"+jsonObject.getString("objectID")+
-                    "','"+jsonObject.getString("book_name")+"','"+
-                    jsonObject.getString("author")+"','"+
-            jsonObject.getString("shelf") +"','"+
-                    jsonObject.getString("type")+"','"+jsonObject.getString("collection_number")+
-                "','"+
-                    jsonObject.getString("collection_number")+"','"+
-                    jsonObject.getString("price")+"','"+
-                    jsonObject.getString("publisher")+"','"+
-                    jsonObject.getString("introduction")
-                    +"'";
-            System.out.println("=+======="+intro);
-        }else if(jsonObject.getString("kind").equals("1")){
-            intro = "'"+jsonObject.getString("objectID")+
-                    "','"+jsonObject.getString("paper_title")+"','"+
-                    jsonObject.getString("author")+"','"+jsonObject.getString("date")+
-                    "','"+
-                    jsonObject.getString("jc_name")+"','"+jsonObject.getString("issue_number")+"','"+
-                    jsonObject.getString("volume_number")+"','"+
-                    jsonObject.getString("page_number")+"','"+
-                    jsonObject.getString("doi")+"'";
-            System.out.println("=+++++++++++++++++++++++++"+intro);
-        }
-
-        jsonObject1.put("introduction", intro);
-        System.out.println(jsonObject1);
-        temp2.parse(jsonObject1);
-
-
-        return "0";
-
+        //jsonObject.put("id", "4");
+//        String intro = "";
+//        if(jsonObject.getString("kind").equals("0")){
+//            intro = "'"+book_id+
+//                    "','"+jsonObject.getString("book_name")+"','"+
+//                    jsonObject.getString("author")+"','"+
+//                    jsonObject.getString("collection_number")+ "','"+
+//                    jsonObject.getString("collection_number")+"','"+
+//                    jsonObject.getString("price")+"','"+
+//                    jsonObject.getString("publisher")+"','"+
+//                    jsonObject.getString("introduction")
+//                    +"'";
+//            System.out.println("插入书籍信息："+intro);
+//        }else if(jsonObject.getString("kind").equals("1")){
+//            intro = "'"+jsonObject.getString("objectID")+
+//                    "','"+jsonObject.getString("paper_title")+"','"+
+//                    jsonObject.getString("author")+"','"+jsonObject.getString("date")+
+//                    "','"+
+//                    jsonObject.getString("jc_name")+"','"+jsonObject.getString("issue_number")+"','"+
+//                    jsonObject.getString("volume_number")+"','"+
+//                    jsonObject.getString("page_number")+"','"+
+//                    jsonObject.getString("doi")+"'";
+//            System.out.println("插入论文信息："+intro);
+//        }
+//
+//        jsonObject1.put("introduction", intro);
+//        System.out.println(jsonObject1);
+        String ret = temp2.parse(jsonObject);
+        JSONObject res = new JSONObject();
+        if(ret.equals("0")){
+            res.put("msg", "1");
+        }else
+            res.put("msg","0");
+        return res;
     }
 }

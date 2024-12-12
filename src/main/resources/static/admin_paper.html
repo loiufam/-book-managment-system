@@ -49,7 +49,7 @@
 
         <button id="build" class="btn btn-default"  style="margin-right:  20px ;width: 80px ;background-color: #168bef;height: 36px;color: #FFFFFF" >查询</button>
         <button id="delete" class="btn btn-default" style="margin-right:  20px ;width: 80px ;background-color: #168bef;height: 36px;color: #FFFFFF">删除</button>
-        <button id="blank" class="btn btn-default"  style="margin-right:  20px ;width: 80px ;background-color: #168bef;height: 36px;color: #FFFFFF">新增</button>
+        <button id="addNew" class="btn btn-default"  style="margin-right:  20px ;width: 80px ;background-color: #168bef;height: 36px;color: #FFFFFF">新增</button>
 
 
     </div>
@@ -67,16 +67,6 @@
                 <th data-field="volume_number">卷号</th>
                 <th data-field="page_number">页数</th>
                 <th data-field="doi">DOI</th>
-<!--                <th data-field="subtract">摘要</th>-->
-
-<!--                <th data-field="book_id">ID</th>-->
-<!--                <th data-field="book_name">书名</th>-->
-<!--                <th data-field="author">作者</th>-->
-<!--                <th data-field="collection_number">总数</th>-->
-<!--                <th data-field="existing_number">现有</th>-->
-<!--                <th data-field="price">价格</th>-->
-<!--                <th data-field="publisher">出版社</th>-->
-<!--                <th data-field="introduction">介绍</th>-->
                 <th data-field="operation">操作</th>
             </tr>
             </thead>
@@ -90,6 +80,7 @@
     .page-content-wrapper {
         width: 800px;
         position: absolute;
+        z-index: 1000;
         top: 10%;
         left: 24%;
         background: #fff;
@@ -109,6 +100,10 @@
         background-image: none;
         border: 1px solid #ccc;
         border-radius: 4px;
+    }
+    /* 确保搜索框有较低的 z-index */
+    #table .fixed-table-toolbar .bs-searchbar {
+        z-index: 1; /* 设置一个较低的值 */
     }
 </style>
 
@@ -150,10 +145,6 @@
     <div class="form-group">
         <label>DOI</label> <input type="href" class="inputstyle" id="doi">
     </div>
-<!--    <div class="form-group">-->
-<!--        <label>摘要</label> <input type="text" class="inputstyle" id="subtract">-->
-<!--    </div>-->
-
 
     <div class="modal-footer">
         <button type="button" class="btn default" data-dismiss="modal" id="close">Close</button>
@@ -231,23 +222,10 @@
 
 
 
-
-
-
-
-
     //***********************************************************************************************************************************
     // 选择请求的类型,并显示在列表上   {id: , kind: }, id表示动作, kind表示书还是论文
     function build_0(ID,KIND) {
-
-
         let columns = [
-
-            // {
-            //     field:'number',
-            //     title:'index',
-            //     formatter:indexFormatter,
-            // },
             {
                 field: 'paper_id',
                 title: '论文号',
@@ -298,12 +276,6 @@
                 cellStyle: formatTableUnit,
                 formatter: option2,
             },
-            // {
-            //     field: 'subtract',
-            //     title: '摘要',
-            //     cellStyle: formatTableUnit,
-            //     formatter: paramsMatter,
-            // },
             {
                 checkbox: true,
                 visible: true                  //是否显示复选框
@@ -321,7 +293,7 @@
 
         //这里写刷新表格连接数据库的报文
         let data;
-        let obj={ID,KIND};
+        let obj={ID,KIND}; //0 1
         let post_all=JSON.stringify(obj);
         console.log(post_all);
 
@@ -332,14 +304,13 @@
             data:post_all,
             contentType : "application/json",
             success: function (data_json) {
-                // console.log(data_json),
-                data =data_json,
+                console.log(data_json);  //返回查询结果jsonArray
+                data =data_json;
 
-
-                    $('#table').bootstrapTable('destroy').bootstrapTable({
-                        columns: columns,
-                        data: data
-                    });
+                $('#table').bootstrapTable('destroy').bootstrapTable({
+                    columns: columns,
+                    data: data
+                });
             },
             error: function () {
                 // alert("错误");
@@ -395,28 +366,29 @@
 
     }
 
-
-
-
     $("#close").on("click", function () {
         $(".page-content-wrapper").hide();
     })
 
-    $("#blank").click(function () {
-        let blank = {
-            paper_id       :"",
-            paper_title    :"",
-            author         :"",
-            date           :"",
-            jc_name        :"",
-            issue_number   :"",
-            volume_number  :"",
-            page_number    :"",
-            doi            :"",
-            // subtract       :"",
-        };
-        $("#table").bootstrapTable('append', blank);
-    });
+    $("#addNew").click(function (){
+        $(".page-content-wrapper").show();
+    })
+
+    // $("#blank").click(function () {
+    //     let blank = {
+    //         paper_id       :"",
+    //         paper_title    :"",
+    //         author         :"",
+    //         date           :"",
+    //         jc_name        :"",
+    //         issue_number   :"",
+    //         volume_number  :"",
+    //         page_number    :"",
+    //         doi            :"",
+    //         // subtract       :"",
+    //     };
+    //     $("#table").bootstrapTable('append', blank);
+    // });
 
     $("#delete").click(function () {
         let rows = $("#table").bootstrapTable('getSelections');
@@ -480,7 +452,6 @@
         for (var i = 0; i < obj.length; i++) {
             if (obj[i].checked) s += obj[i].value + ','; //如果选中，将value添加到变量s中
         }
-
         if (s.length == 0) {
             alert("还没有选择任何编辑方式！")
         }
@@ -488,32 +459,29 @@
             alert("不能同时选择两种编辑方式！")
         }else{
             let edit_id = s[0].toString();
-            let paper_id       =         $('#paper_id                          ').val(              )       ;
-            let paper_title    =         $('#paper_title                       ').val(             )       ;
-            let author         =         $('#author                            ').val(             )       ;
-            let date           =         $('#date                              ').val(            )       ;
-            let jc_name        =         $('#jc_name                           ').val(             )       ;
-            let issue_number   =         $('#issue_number                      ').val(            )       ;
-            let volume_number  =         $('#volume_number                     ').val(              )       ;
-            let page_number    =         $('#page_number                       ').val(                  )        ;
-            let DOI            =         $('#doi                               ').val(              )       ;
-            // let subtract       =         $('#subtract                          ').val(                  )        ;
-
+            let paper_id       =         $('#paper_id                          ').val();
+            let paper_title    =         $('#paper_title                       ').val();
+            let author         =         $('#author                            ').val();
+            let date           =         $('#date                              ').val();
+            let jc_name        =         $('#jc_name                           ').val();
+            let issue_number   =         $('#issue_number                      ').val();
+            let volume_number  =         $('#volume_number                     ').val();
+            let page_number    =         $('#page_number                       ').val();
+            let DOI            =         $('#doi                               ').val();
 
 
             let obj12={};
-            obj12.id          =4          ;
-            obj12.kind             = 1;
-            obj12.objectID           =paper_id          ;
-            obj12.paper_title         =paper_title       ;
-            obj12.author              =author            ;
-            obj12.date                =date              ;
-            obj12.jc_name             =jc_name           ;
-            obj12.issue_number        =issue_number      ;
-            obj12.volume_number       =volume_number     ;
-            obj12.page_number         =page_number       ;
-            obj12.doi                 =DOI         ;
-            // obj12.subtract            =subtract          ;
+            obj12.id                  = 4;
+            obj12.kind                = 1;
+            obj12.paper_id            =paper_id;
+            obj12.paper_title         =paper_title;
+            obj12.author              =author;
+            obj12.date                =date;
+            obj12.jc_name             =jc_name;
+            obj12.issue_number        =issue_number;
+            obj12.volume_number       =volume_number;
+            obj12.page_number         =page_number;
+            obj12.doi                 =DOI;
 
             console.log(obj12);
 
@@ -531,13 +499,11 @@
                 success: function (data) {
                     // $("#table").bootstrapTable('refresh');
                     // alert("提交成功");
-                    // location = location;
                     console.log(data);
                     console.log("success");
                     build();
                 },
                 error: function () {
-                    // toastr.error('Error');
                     alert("更改失败,请重新更改");
                 }
             })
