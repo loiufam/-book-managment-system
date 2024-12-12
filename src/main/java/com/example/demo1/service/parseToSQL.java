@@ -2,7 +2,6 @@ package com.example.demo1.service;
 
 import com.example.demo1.model.BookBorrowDTO;
 import com.example.demo1.model.books;
-import com.huawei.shade.com.alibaba.fastjson.JSON;
 import com.huawei.shade.com.alibaba.fastjson.JSONArray;
 import com.huawei.shade.com.alibaba.fastjson.JSONObject;
 
@@ -69,15 +68,15 @@ public class parseToSQL {
                 "    books.image_url AS imageUrl, " +
                 "    books.author, " +
                 "    books.publisher, " +
-                "    COUNT(records.record_id) AS borrowCount " +
+                "    records.number " +
                 "FROM " +
                 "    records " +
                 "JOIN " +
                 "    books ON records.bookid = books.book_id " +
                 "WHERE " +
-                "    records.userid = " + userId +
+                "    records.userid = '" + userId + "'" +
                 "GROUP BY " +
-                "    books.book_id, books.book_name, books.image_url, books.author, books.publisher;";
+                "    books.book_id, books.book_name, books.image_url, books.author, books.publisher, records.number;";
         Statement statement = dbConnection.createStatement(); // Statement对象
         ResultSet rs; // 结果集合
         System.out.println(SQLCmd);
@@ -91,32 +90,38 @@ public class parseToSQL {
             book.setImageUrl(rs.getString("imageUrl"));
             book.setAuthor(rs.getString("author"));
             book.setPublisher(rs.getString("publisher"));
-            book.setBorrowCount(rs.getLong("borrowCount"));
+            book.setBorrowCount(rs.getString("number"));
 
             bookList.add(book);
         }
         return bookList;
     }
 
-    public books getBookDetails(String bookId) throws SQLException {
-        if (bookId == null || bookId.isEmpty()) {
-            throw new IllegalArgumentException("图书ID不能为空");
+    public JSONObject getBookDetails(String bookId) throws SQLException {
+        String SQLCmd = "SELECT book_name, collection_number, existing_number FROM books WHERE book_id = ?";
+        try (PreparedStatement pstmt = dbConnection.prepareStatement(SQLCmd)) {
+            pstmt.setString(1, bookId);
+
+            System.out.println(pstmt); // 打印PreparedStatement对象以调试
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (!rs.next()) {
+                    System.out.println("没有找到匹配的记录");
+                    return new JSONObject(); // 如果没有匹配的记录，返回空的 JSON 对象
+                } else {
+                    // 创建 JSON 对象并填充数据
+                    JSONObject temp = new JSONObject();
+                    temp.put("book_name", rs.getString("book_name"));
+                    temp.put("collection_number", rs.getInt("collection_number"));
+                    temp.put("existing_number", rs.getInt("existing_number"));
+
+                    // 打印查询到的信息
+                    System.out.println("查询到的书籍信息：" + temp);
+
+                    return temp;
+                }
+            }
         }
-        String SQL = "SELECT book_name, collection_number, existing_number FROM " +
-                "books WHERE book_id = " + bookId + ";";
-        Statement statement = dbConnection.createStatement(); // Statement对象
-        ResultSet rs; // 结果集合
-        System.out.println(SQL);
-        rs = statement.executeQuery(SQL);
-        if (rs.next()) {
-            return new books(
-                    rs.getString("book_id"),
-                    rs.getString("book_name"),
-                    String.valueOf(rs.getInt("collection_number")),
-                    String.valueOf(rs.getInt("existing_number"))
-            );
-        }
-        return null;
     }
 
     public int closeConnection() {
@@ -200,49 +205,38 @@ public class parseToSQL {
     public String parse1(JSONObject jsonObj) throws SQLException {
         String userid =jsonObj.getString("userID");
         String objectID = jsonObj.getString("objectID");
-        String number = jsonObj.getString("number"); //借还书数量
-        String book_name = jsonObj.getString("book_name");
+        int number = jsonObj.getIntValue("number"); //借还书数量
+        //String book_name = jsonObj.getString("book_name");
         String dbName = "books";
         Date time = new java.sql.Date(new java.util.Date().getTime());
-        String querySQLCmd = "SELECT * FROM records WHERE user_id = " + "'" + userid + "' and object_id= '" + objectID + "';";
+        String querySQLCmd = "SELECT * FROM records WHERE userid = " + "'" + userid + "' and bookid= '" + objectID + "';";
         conn.QueryDB(querySQLCmd, 2);  //查询records
-        JSONArray temp = conn.queryResultReturned;
+        JSONArray temp = conn.queryResultReturned; //查询records表结果
         System.out.println(querySQLCmd);
         System.out.println(temp);
-        if (temp.equals(new JSONArray())) {
+        if (temp.equals(new JSONArray())) {  //此时的number为负，因为用户没借过此书，不可能还书
             //借 没有借过的
             //生成唯一的record_id
             String record_id = UUID.randomUUID().toString().replaceAll("-", "");
-            String SQLCmd = "INSERT INTO records VALUES" + "('" + record_id + "','" + userid + "','" + objectID + "','" + time + "','" + "', '" + Integer.parseInt(number) + "');";
+            int currentNum = Math.abs(number);
+            String SQLCmd = "INSERT INTO records VALUES" + "('" + record_id + "','" + userid + "','" + objectID + "', '" + time + "', " + "NULL" +", '" + currentNum + "');";
             System.out.println(SQLCmd);
             conn.insertToDB(SQLCmd);
-            return updateExisting(objectID, dbName, Integer.parseInt(number));
+            return updateExisting(objectID, dbName, number);
         } else {
             //Date date = new Date();
             //借/还 已经借过的
             int borrowed = Integer.parseInt(temp.getJSONObject(0).getString("number"));
-            int num =0;
-            System.out.println("number is "+ number);
-            if(number.charAt(0)=='-') {
-                num = -Integer.parseInt(number);
-            } else if(number.charAt(0)=='+'){// 还书
-                num = Integer.parseInt(number);
-            }
-            else{
-                System.out.println("Illegal borrow/return number format");
-                return "Illegal borrow/return number format";
-            }
-            int currentNum= borrowed + num;
-            if(currentNum >0) {
-                return "Illegal return quantity";
-            }
 
-            String SQLCmdToDelete = "DELETE FROM records WHERE user_id = " + "'" + userid + "' and object_id= '" + objectID + "';";
+            System.out.println("number is "+ number);
+
+            String SQLCmdToDelete = "DELETE FROM records WHERE userid = " + "'" + userid + "' and bookid= '" + objectID + "';";
             String SQLCmdToInsert = ";";
-            if(num < 0){
+            int currentNum = borrowed - number;
+            if(number < 0){ //要借 已借过 的书
                 String record_id = UUID.randomUUID().toString().replaceAll("-", "");
                 SQLCmdToInsert = "INSERT INTO records VALUES" + "('" + record_id + "','" + userid + "','" + objectID + "','" + time + "', "+ "NULL" +", '" + currentNum + "');";
-            }else {
+            }else {  //要还 已借过 的书
                 String record_id = UUID.randomUUID().toString().replaceAll("-", "");
                 SQLCmdToInsert = "INSERT INTO records VALUES" + "('" + record_id + "','" + userid + "','" + objectID + "'," + "NULL" + ",'"+  time + "', '" + currentNum + "');";
             }
@@ -250,8 +244,7 @@ public class parseToSQL {
             System.out.println( SQLCmdToInsert );
             conn.deleteFromDB(SQLCmdToDelete);
             conn.insertToDB(SQLCmdToInsert);
-            return updateExisting(objectID, dbName, Integer.parseInt(number));
-
+            return updateExisting(objectID, dbName, number);  //更新books表
         }
 
     }
@@ -328,7 +321,7 @@ public class parseToSQL {
         existingNumber += number;
         String SQLCmd = "UPDATE" + " " + dbName + " SET existing_number = " + existingNumber + " WHERE book_id = " + "'" + objectID + "';";
         conn.UpdateDB(SQLCmd);
-        queryResult = conn.QueryDB(dbQuery, 0);
+        queryResult = conn.QueryDB(dbQuery, 0);  //更新后查询book表
         return queryResult;
     }
 

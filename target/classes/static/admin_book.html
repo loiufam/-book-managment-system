@@ -350,20 +350,21 @@
                     cellStyle: formatTableUnit,
                     formatter: paramsMatter,
                 },
-                {
-                    field: 'shelf',
-                    title: '书架',
-                    //editable:true,
-                    cellStyle: formatTableUnit,
-                    formatter: paramsMatter,
-                },
-                {
-                    field: 'type',
-                    title: '类型',
-                    //editable:true,
-                    cellStyle: formatTableUnit,
-                    formatter: paramsMatter,
-                },{
+                // {
+                //     field: 'shelf',
+                //     title: '书架',
+                //     //editable:true,
+                //     cellStyle: formatTableUnit,
+                //     formatter: paramsMatter,
+                // },
+                // {
+                //     field: 'type',
+                //     title: '类型',
+                //     //editable:true,
+                //     cellStyle: formatTableUnit,
+                //     formatter: paramsMatter,
+                // },
+                    {
                     field: 'collection_number',
                     title: '总数',
                     cellStyle: formatTableUnit,
@@ -468,8 +469,8 @@
             $('#book_id').val(data.book_id)
             $('#book_name').val(data.book_name)
             $('#author').val(data.author)
-            $('#shelf').val(data.shelf)
-            $('#type').val(data.type)
+            // $('#shelf').val(data.shelf)
+            // $('#type').val(data.type)
             $('#collection_number').val(data.collection_number)
             $('#existing_number').val(data.existing_number)
             $('#price').val(data.price)
@@ -483,8 +484,8 @@
                 book_id: "",
                 book_name: "",
                 author: "",
-                shelf:"",
-                type:"",
+                // shelf:"",
+                // type:"",
                 collection_number: "",
                 existing_number: "",
                 price: "",
@@ -516,8 +517,8 @@
                     let str1 =idcard.toString();
                     console.log(str1);
                     let obj={};
-                    obj.bookID=str1;//用户名
-                    obj.kind="0";//用户名
+                    obj.bookID=str1;
+                    obj.kind="0";
 
                     let postDelete=JSON.stringify(obj);
 

@@ -30,7 +30,7 @@ public class userController {
             parseToSQL temp = new parseToSQL();
             String ret = temp.parse(jsonObject);
             JSONObject result = new JSONObject();
-            if (ret != null && ret.length() >= 2) {
+            if (ret != null && ret.length() != 0) {
                 result.put("status", "success");
                 result.put("msg", "操作成功");
             } else {
@@ -106,7 +106,7 @@ public class userController {
     @ResponseBody
     public ResponseEntity<BookResponse> getBookDetails(@RequestParam("book_id") String bookId) {
         try{
-            books book = bookService.getBookDetails(bookId);
+            JSONObject book = bookService.getBookDetails(bookId);
             return new ResponseEntity<>(new BookResponse(true, "成功", book), HttpStatus.OK);
         }catch (Exception r){
             // 处理异常
