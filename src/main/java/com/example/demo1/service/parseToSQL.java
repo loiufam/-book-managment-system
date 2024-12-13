@@ -348,7 +348,9 @@ public class parseToSQL {
     }
 
     private int insertIntoDB(String dbname, JSONObject jsonObject) throws SQLException {
-        String SQLCmd = ";";
+        String SQLCmd = "";
+        String SQLDelte = "";
+        String SQLQuery = "";
         if(dbname.equals("books")) {
              SQLCmd = "INSERT INTO " + dbname + " VALUES" + "(" + "'" +
                     jsonObject.getString("book_id") + "', '"+
@@ -361,6 +363,8 @@ public class parseToSQL {
                     jsonObject.getString("introduction") + "', '"+
                     jsonObject.getString("avatarUrl") + "'"+
                     ");";
+            SQLDelte = "DELETE FROM " + dbname + " WHERE book_id = " + "'" + jsonObject.getString("book_id") + "';";
+            SQLQuery = "SELECT * FROM " + dbname  + " WHERE book_id = " + "'" + jsonObject.getString("book_id") + "';";
         }else {
              SQLCmd = "INSERT INTO " + dbname + " VALUES" + "(" + "'" +
                      jsonObject.getString("paper_id") + "', '"+
@@ -373,9 +377,20 @@ public class parseToSQL {
                      jsonObject.getString("page_number") + "', '"+
                      jsonObject.getString("doi") + "'"+
                      ");";
+            SQLDelte = "DELETE FROM "  + dbname + " WHERE paper_id = " + "'" + jsonObject.getString("paper_id") + "';";
+            SQLQuery = "SELECT * FROM " + dbname + " WHERE paper_id = " + "'" + jsonObject.getString("paper_id") + "';";
         }
-        System.out.println("执行插入语句：" + SQLCmd);
-        return conn.insertToDB(SQLCmd);
+        Statement statement = dbConnection.createStatement(); // Statement对象
+        ResultSet rs; // 结果集合
+        rs = statement.executeQuery(SQLQuery);
+        if(rs.next()){ //books表中已有记录
+            conn.deleteFromDB(SQLDelte);
+            System.out.println("执行插入语句：" + SQLCmd);
+            return conn.insertToDB(SQLCmd);
+        }else {
+            System.out.println("执行插入语句：" + SQLCmd);
+            return conn.insertToDB(SQLCmd);
+        }
     }
 
     private int deleteFromDB(String dbname, String objectID) throws SQLException {
