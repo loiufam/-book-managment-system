@@ -126,6 +126,13 @@
 
     })
 
+    document.addEventListener('DOMContentLoaded', function () {
+        const userId = sessionStorage.getItem('userId');
+        if (!userId) {
+            window.location.href = '/login'; // 重定向到登录页面
+        }
+    });
+
     function login3() {
 
 
@@ -151,7 +158,7 @@
                 // 构建文件的 URL
 
                  // const fileUrl = client.signatureUrl(fileName);
-                 const fileUrl = client.signatureUrl(file.name);
+                 const fileUrl = `https://lyhimage.oss-cn-guangzhou.aliyuncs.com/${result.name}`;
                 console.log(fileUrl);
                 return fileUrl;
             } catch (err) {
@@ -197,7 +204,7 @@
                     },3000);
 
                     if(data.msg==="1"){
-                        alert($("input[id='stuName']").val()+"注册成功,3秒后返回登录页面");
+                        alert($("input[id='stuName']").val()+"注册成功！");
                         window.location.href="login.html";
                     }else{
                         alert("用户已存在, 注册失败, 更换用户名进行注册");
@@ -206,6 +213,7 @@
                 },
                 error: function (e) {
                     console.log(e);
+                    alert("响应失败！");
                 }
             })
         }).catch(err => {

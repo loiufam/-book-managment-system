@@ -76,6 +76,25 @@
 
 <script>
 
+    // 检查 userId 是否存在
+    function checkUserId() {
+        const userId = sessionStorage.getItem('userId');
+        if (!userId) {
+            alert('请先登录');
+            window.location.href = '/login'; // 修改为你的登录页面URL
+            return false;
+        }
+        return true;
+    }
+
+    // 页面加载时检查 userId
+    document.addEventListener('DOMContentLoaded', function () {
+        if (!checkUserId()) {
+            // 如果没有 userId，停止进一步加载页面内容
+            return;
+        }
+        // 继续加载页面内容
+    });
 
     //data-url="data/data1.json"
     $(function () {

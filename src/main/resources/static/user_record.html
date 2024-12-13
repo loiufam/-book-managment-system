@@ -23,11 +23,13 @@
             display: -webkit-flex;
             -webkit-flex-direction: column;
         }
+        #bookList {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* 自动填充列，每列最小宽度200px */
+            gap: 10px; /* 设置书籍项之间的间距 */
+        }
         .book-item {
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid #ddd;
-            padding: 15px 0;
+            box-sizing: border-box;
         }
         .book-image {
             width: 100px;
@@ -122,6 +124,27 @@
 
 
 <script>
+
+    // 检查 userId 是否存在
+    function checkUserId() {
+        const userId = sessionStorage.getItem('userId');
+        if (!userId) {
+            alert('请先登录');
+            window.location.href = '/login'; // 修改为你的登录页面URL
+            return false;
+        }
+        return true;
+    }
+
+    // 页面加载时检查 userId
+    document.addEventListener('DOMContentLoaded', function () {
+        if (!checkUserId()) {
+            // 如果没有 userId，停止进一步加载页面内容
+            return;
+        }
+        // 继续加载页面内容
+    });
+
     document.addEventListener('DOMContentLoaded', function() {
         const bookListContainer = document.getElementById('bookList');
         const loadingIndicator = document.getElementById('loading');

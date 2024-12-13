@@ -36,9 +36,9 @@
             </a>
 
 
-            <a href="./admin_record.html">
-                <button class="btn btn-default" style="margin-right:  20px ;width: 120px ;background-color: #7ED321;height: 36px;color: #FFFFFF">图书借阅记录</button>
-            </a>
+<!--            <a href="./admin_record.html">-->
+<!--                <button class="btn btn-default" style="margin-right:  20px ;width: 120px ;background-color: #7ED321;height: 36px;color: #FFFFFF">图书借阅记录</button>-->
+<!--            </a>-->
             <a href="./login.html">
                 <button class="btn btn-default" style="margin-right:  20px ;width: 80px ;background-color: #707376;height: 36px;color: #FFFFFF;float: right">退出</button>
             </a>
@@ -88,6 +88,7 @@
             background: #fff;
             border: 1px solid #999;
             padding: 3% 0 0 9%;
+            cursor: move;
             display: none;
         }
 
@@ -111,7 +112,7 @@
 
     <table id="mytab" class="table table-hover"></table>
     <!-- 新增和修改界面 -->
-    <div class="page-content-wrapper">
+    <div class="page-content-wrapper" draggable="true">
         <input type="text" class="inputstyle" id="id" style="display: none;">
         <p>Tips:只能在新增书本时修改ID</p>
 <!--        <div class="form-group">-->
@@ -180,8 +181,32 @@
     <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.16.0.min.js"></script>
     <script>
 
+        // 检查 userId 是否存在
+        function checkUserId() {
+            const userId = sessionStorage.getItem('userId');
+            if (!userId) {
+                alert('请先登录');
+                window.location.href = '/login'; // 修改为你的登录页面URL
+                return false;
+            }
+            return true;
+        }
+
+        // 页面加载时检查 userId
+        document.addEventListener('DOMContentLoaded', function () {
+            if (!checkUserId()) {
+                // 如果没有 userId，停止进一步加载页面内容
+                return;
+            }
+            // 继续加载页面内容
+        });
+
         $("#updateBtn").click(function (){
             updateBook();
+        })
+
+        $("#build").click(function (){
+            build();
         })
 
         $(document).ready(function(){
@@ -203,6 +228,27 @@
         function updateBook(){
             let avatarInput = document.getElementById('imageFile');
             let avatarFile = avatarInput.files[0]; // 获取用户选择的第一个文件
+            // //向后端发请求拿参数
+            // async function getUploadParams() {
+            //     try {
+            //         let req = {}
+            //         req.data = "request Param";
+            //         const response = await fetch('/get-upload-params', {
+            //             method: 'POST',
+            //             headers: {
+            //                 'Content-Type': 'application/json'
+            //             },
+            //             body: JSON.stringify(req)
+            //         });
+            //         if (!response.ok) {
+            //             throw new Error('Network response was not ok');
+            //         }
+            //         return await response.json();
+            //     } catch (error) {
+            //         console.error('Error fetching upload parameters:', error);
+            //         throw error;
+            //     }
+            // }
 
             async function uploadFileToOSS(file) {
                 // 初始化 OSS 客户端
@@ -212,15 +258,19 @@
                     accessKeySecret: '57euejpndMjxkv4Hq6YmI1fI6KcPdf',
                     bucket: 'lyhimage'
                 });
+
                 try {
                     // 上传文件
                     const result = await client.put(file.name, file);
-                    console.log('File uploaded:', result);
+                    // 请求后端生成带有一个月有效期的签名 URL
+                    const signedUrlResponse = await fetch(`/generate-signed-url?objectName=${encodeURIComponent(result.name)}`);
+                    if (!signedUrlResponse.ok) {
+                        throw new Error('Failed to generate signed URL');
+                    }
+                    const signedUrl = await signedUrlResponse.text();
 
-                    // 构建文件的 URL
-                    const fileUrl = `https://lyhimage.oss-cn-guangzhou.aliyuncs.com/${result.name}`;
-                    console.log(fileUrl);
-                    return fileUrl;
+                    console.log('Uploaded Image URL:', signedUrl);
+                    return signedUrl;
                 } catch (err) {
                     console.error('Error uploading file:', err);
                     throw err;
@@ -283,15 +333,15 @@
 
         }
 
-
-        $(function () {
-            $('#build').click(build);//.trigger('click');
-            $('#cells, #rows').keyup(function (e) {
-                if (e.keyCode === 13) {
-                    build();
-                }
-            });
-        });
+        //
+        // $(function () {
+        //     $('#build').click(build);//.trigger('click');
+        //     $('#cells, #rows').keyup(function (e) {
+        //         if (e.keyCode === 13) {
+        //             build();
+        //         }
+        //     });
+        // });
 
         function actionFormatter(value, row, index) {
             var id = value;
@@ -321,7 +371,51 @@
             }
         }
 
+        document.addEventListener('DOMContentLoaded', function () {
+            var dragItem = document.querySelector('.page-content-wrapper');
+            var active = false;
+            var currentX, currentY, initialX, initialY;
+            var xOffset = 0, yOffset = 0;
 
+            // 添加事件监听器
+            dragItem.addEventListener('mousedown', dragStart, false);
+            dragItem.addEventListener('mouseup', dragEnd, false);
+            dragItem.addEventListener('mouseleave', dragEnd, false);
+            dragItem.addEventListener('mousemove', dragMove, false);
+
+            function dragStart(e) {
+                if (e.target === dragItem) {
+                    initialX = e.clientX - xOffset;
+                    initialY = e.clientY - yOffset;
+                    active = true;
+                }
+            }
+
+            function dragEnd() {
+                initialX = currentX;
+                initialY = currentY;
+                active = false;
+            }
+
+            function dragMove(e) {
+                if (active) {
+                    e.preventDefault();
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+
+                    // 使用 requestAnimationFrame 来优化性能
+                    window.requestAnimationFrame(function() {
+                        setTranslate(currentX, currentY, dragItem);
+                    });
+                }
+            }
+
+            function setTranslate(xPos, yPos, el) {
+                xOffset = xPos;
+                yOffset = yPos;
+                el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)";
+            }
+        });
         //***********************************************************************************************************************************
         // 选择请求的类型,并显示在列表上   {id: , kind: }, id表示动作, kind表示书还是论文
         function build_0(ID,KIND) {
@@ -434,18 +528,12 @@
                     alert("查询失败,请重新查询");
                 }
             });
-
-
-            $('#table').bootstrapTable('destroy').bootstrapTable({
-                columns: columns,
-                data: data,
-                clickToSelect: true,
-                showPaginationSwitch: true,
-
-
-            });
-
-
+            // $('#table').bootstrapTable('destroy').bootstrapTable({
+            //     columns: columns,
+            //     data: data,
+            //     clickToSelect: true,
+            //     showPaginationSwitch: true,
+            // });
             $('#table').resize();
 
         }

@@ -5,6 +5,7 @@ import com.example.demo1.model.BookBorrowDTO;
 import com.example.demo1.model.BookResponse;
 import com.example.demo1.model.books;
 import com.example.demo1.service.BookService;
+import com.example.demo1.service.UserService;
 import com.example.demo1.service.parseToSQL;
 import com.huawei.shade.com.alibaba.fastjson.JSONArray;
 import com.huawei.shade.com.alibaba.fastjson.JSONObject;
@@ -111,6 +112,22 @@ public class userController {
         }catch (Exception r){
             // 处理异常
             return new ResponseEntity<>(new BookResponse(false, "服务器错误，请稍后再试"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Autowired
+    private UserService userService;
+
+    @GetMapping("/get-user-img")
+    @ResponseBody
+    public ResponseEntity<JSONObject> getUserImg(@RequestParam("userId") String userId) {
+        try{
+            JSONObject imgUrl = userService.getUserImg(userId);
+            System.out.println("imgUrl:" + imgUrl);
+            return new ResponseEntity<>(imgUrl, HttpStatus.OK);
+        }catch (Exception e){
+            System.out.println("内部错误：" + e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

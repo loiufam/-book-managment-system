@@ -202,10 +202,8 @@ public class dbConn {
         //int result = 2;
         rs = statement.executeQuery(SQLCmd); //查询users表返回的结果集
         while (rs.next()) {
-            String id = rs.getString("user_name");
-            id = id.trim();
-            String pwd_query = rs.getString("user_password");
-            pwd_query = pwd_query.trim();
+            String id = rs.getString("user_name").trim();
+            String pwd_query = rs.getString("user_password").trim();
             String if_admin = rs.getString("identify");
             System.out.println("登录请求,输入的密码为 " + pwd);
             System.out.println("查询到的信息：id = " + id + " pwd =" + pwd_query + " if_admin= " + if_admin);

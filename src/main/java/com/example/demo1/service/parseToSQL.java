@@ -124,6 +124,27 @@ public class parseToSQL {
         }
     }
 
+    public JSONObject getUserImgById(String userId) throws SQLException {
+        String SQLCmd = "SELECT avatar FROM users WHERE user_name = ?";
+        try (PreparedStatement pstmt = dbConnection.prepareStatement(SQLCmd)) {
+            pstmt.setString(1, userId);
+
+            System.out.println(pstmt); // 打印PreparedStatement对象以调试
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (!rs.next()) {
+                    System.out.println("没有找到匹配的记录");
+                    return new JSONObject(); // 如果没有匹配的记录，返回空的 JSON 对象
+                } else {
+                    // 创建 JSON 对象并填充数据
+                    JSONObject temp = new JSONObject();
+                    temp.put("avatarUrl", rs.getString("avatar"));
+                    return temp;
+                }
+            }
+        }
+    }
+
     public int closeConnection() {
         conn.closeConnection();
         return 0;
@@ -142,7 +163,7 @@ public class parseToSQL {
             result = conn.LoginDB(SQLCmd, pwd);
             if (result == 0) {
                 System.out.println("管理员登陆成功");
-                user_id = id;
+                user_id = id;  //用户登陆成功后，也可以通过静态变量得到当前userid
                 return 0;
             } else if (result == 1) {
                 System.out.println("用户登陆成功");
@@ -156,7 +177,7 @@ public class parseToSQL {
             String stuID = jsonObj.getString("stuID");
             int identity = jsonObj.getIntValue("identity");
             String image_url = jsonObj.getString("image_url");
-            SQLCmd = "INSERT INTO users VALUES(" + "'" + id + "'" + "," + "'" + pwd + "'" +",'"+ identity + "','"+stuID+ "','" + image_url+"');";
+            SQLCmd = "INSERT INTO users VALUES(" + "'" + id + "'" + "," + "'" + pwd + "'" +", '"+ identity + "', '"+stuID+ "','" + image_url+"');";
             System.out.println(SQLCmd);
             result = conn.insertToDB(SQLCmd);
             if (result == 0) {
@@ -243,7 +264,8 @@ public class parseToSQL {
             System.out.println( SQLCmdToDelete );
             System.out.println( SQLCmdToInsert );
             conn.deleteFromDB(SQLCmdToDelete);
-            conn.insertToDB(SQLCmdToInsert);
+            if(currentNum > 0)
+                conn.insertToDB(SQLCmdToInsert);
             return updateExisting(objectID, dbName, number);  //更新books表
         }
 

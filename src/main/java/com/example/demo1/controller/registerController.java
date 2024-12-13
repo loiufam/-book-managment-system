@@ -28,7 +28,7 @@ public class registerController {
     public JSONObject register(@RequestBody(required=false) JSONObject user) throws SQLException {
         JSONObject json = new JSONObject();
         String image_url = user.getString("avatarUrl");
-        json.put("id","-2");
+        json.put("id","-2"); //注册
         json.put("user_id",user.getString("user_name"));
         json.put("pwd",user.getString("user_password"));
         json.put("stuID",user.getString("stuID"));
@@ -39,11 +39,7 @@ public class registerController {
 
         String ret = temp.parse(json);
         JSONObject result = new JSONObject();
-        if(ret.equals("0")) {
-            result.put("msg","0");
-        }else{
-            result.put("msg","1");
-        }
+        result.put("msg", ret);
         System.out.println(result);
         return result;
     }
