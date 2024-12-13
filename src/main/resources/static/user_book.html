@@ -18,7 +18,8 @@
         .avatar-container {
             display: inline-block;
             vertical-align: middle;
-            margin-right: 5px; /* 调整头像和按钮之间的间距 */
+            margin-left: 500px;
+            /*margin-right: 5px; !* 调整头像和按钮之间的间距 *!*/
         }
 
         .user-avatar {
@@ -196,7 +197,7 @@
             .then(response => response.json())
             .then(data => {
                 // data = data.imgUrl;
-                console.log("收到的url：" + data);
+                console.log("收到的url：" + data.avatarUrl);
                 if (data && data.avatarUrl) {
                     document.getElementById('userAvatar').src = data.avatarUrl;
                 } else {

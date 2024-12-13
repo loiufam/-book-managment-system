@@ -158,9 +158,17 @@
                 // 构建文件的 URL
 
                  // const fileUrl = client.signatureUrl(fileName);
-                 const fileUrl = `https://lyhimage.oss-cn-guangzhou.aliyuncs.com/${result.name}`;
+                const fileUrl = `https://lyhimage.oss-cn-guangzhou.aliyuncs.com/${file.name}`;
                 console.log(fileUrl);
                 return fileUrl;
+                // const signedUrlResponse = await fetch(`/generate-signed-url?objectName=${encodeURIComponent(result.name)}`);
+                // if (!signedUrlResponse.ok) {
+                //     throw new Error('Failed to generate signed URL');
+                // }
+                // const signedUrl = await signedUrlResponse.text();
+                //
+                // console.log('Uploaded Image URL:', signedUrl);
+                // return signedUrl;
             } catch (err) {
                 console.error('Error uploading file:', err);
                 throw err;
@@ -168,11 +176,9 @@
         }
 
         // 示例：假设你有一个文件路径 `filePath` 和文件名 `fileName`
-        url_global = ""
-
+        url_global = `https://lyhimage.oss-cn-guangzhou.aliyuncs.com/${avatarFile.name}`
 
         uploadFileToOSS(avatarFile).then(url => {
-            url_global = url;
             console.log('Uploaded file URL:', url);
             let obj = {};
             obj.user_name = $("input[id='username1']").val();//学号

@@ -17,6 +17,19 @@
         #table th{
             background: #efefef;
         }
+        .avatar-container {
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 500px;
+            /*margin-right: 5px; !* 调整头像和按钮之间的间距 *!*/
+        }
+
+        .user-avatar {
+            border-radius: 50%; /* 圆形框 */
+            width: 34px; /* 与按钮宽度一致 */
+            height: 34px; /* 确保是正方形，以便圆形显示正确 */
+            object-fit: cover; /* 确保图片按比例填充 */
+        }
     </style>
 </head>
 
@@ -35,6 +48,9 @@
         <a href="./admin_paper.html">
             <button class="btn btn-default" style="margin-right:  20px ;width: 120px ;background-color: #7ED321;height: 36px;color: #FFFFFF">论文板块</button>
         </a>
+        <div class="avatar-container">
+            <img id="userAvatar" src="" alt="User Avatar" class="user-avatar">
+        </div>
         <a href="./login.html">
             <button class="btn btn-default" style="margin-right:  20px ;width: 120px ;float: right">退出</button>
         </a>
@@ -93,7 +109,32 @@
             // 如果没有 userId，停止进一步加载页面内容
             return;
         }
+        // 获取 userId
+        const userId = sessionStorage.getItem('userId');
         // 继续加载页面内容
+        console.log("当前用户ID：" + userId);
+        // 设置默认头像 URL
+        const defaultAvatarUrl = 'https://lyhimage.oss-cn-guangzhou.aliyuncs.com/default.jpeg';
+        // 如果没有 userId 或者无法获取，则使用默认头像
+        if (!userId) {
+            document.getElementById('userAvatar').src = defaultAvatarUrl;
+        }
+        // 发送 AJAX 请求到后端获取用户信息
+        fetch(`/get-user-img?userId=${encodeURIComponent(userId)}`) // 替换为你的实际API路径
+            .then(response => response.json())
+            .then(data => {
+                // data = data.imgUrl;
+                console.log("收到的url：" + data.avatarUrl);
+                if (data && data.avatarUrl) {
+                    document.getElementById('userAvatar').src = data.avatarUrl;
+                } else {
+                    document.getElementById('userAvatar').src = defaultAvatarUrl;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching user avatar:', error);
+                document.getElementById('userAvatar').src = defaultAvatarUrl;
+            });
     });
 
     //data-url="data/data1.json"

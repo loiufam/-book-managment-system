@@ -72,6 +72,9 @@ public class dbConn {
     // 执行查询SQL(三表查询入口)
     public String QueryDB(String SQLCmd, int kind) throws SQLException {
         //kind: 0 books 1 papers 2 records
+        if (dbConnection == null) {
+            createConnection();
+        }
         Statement statement = dbConnection.createStatement(); // Statement对象
         ResultSet rs; // 结果集合
         System.out.println(SQLCmd);
